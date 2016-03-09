@@ -1,0 +1,174 @@
+\documentclass[10pt]{article}
+
+\usepackage{longtable}\usepackage{amsfonts}
+
+\oddsidemargin 6pt\evensidemargin 6pt\marginparwidth 48pt\marginparsep 10pt 
+\topmargin -18pt\headheight 12pt\headsep 25pt\footskip 30pt 
+\textheight 625pt\textwidth 431pt\columnsep 10pt\columnseprule 0pt
+
+%% The predefined standard macros for logical symbols.
+\def\posttotexand{\wedge}
+\def\posttotexor{\vee}
+\def\posttotexforall{\forall}
+\def\posttotexexists{\exists}
+\def\posttoteximplies{\Rightarrow}
+\def\posttotexequiv{\Leftrightarrow}
+\def\posttotexnot{\neg}
+\def\posttotexkappa{{\cal K}}
+\def\ptotsupportline#1{\scriptsize (!)#1}
+\def\ptotopenline#1{\scriptsize (?)#1}
+
+%% The macro-file for the ND-proof style
+\input{/home/chris//omega/omega-3/prog/post2tex/ndmacros}
+
+\begin{document}
+%% The macros defining type symbols.
+\def\ptotomicron{o}
+\def\ptotiota{\iota}
+
+%% The macros defining additional signature in the proof.
+\def\ptotDCMINUSIBJDa{{Dc-_{8193}}}
+\def\ptotDCMINUSIBJDia{{Dc-_{8193}}_{[\ptotiota]}}
+\def\ptotDCMINUSIBIJb#1{{Dc-_{8189}}(#1)}
+\def\ptotDCMINUSIBIJLBRiRBRARoa{{Dc-_{8189}}_{[\ptotiota \rightarrow \ptotomicron]}}
+\def\ptotDCMINUSIEDAa{{Dc-_{8430}}}
+\def\ptotDCMINUSIEDAia{{Dc-_{8430}}_{[\ptotiota]}}
+\def\ptotDCMINUSIECCa{{Dc-_{8422}}}
+\def\ptotDCMINUSIECCia{{Dc-_{8422}}_{[\ptotiota]}}
+\def\ptotNNa{{Nn}}
+\def\ptotNNia{{Nn}_{[\ptotiota]}}
+\def\ptotDCMINUSIDJHa{{Dc-_{8397}}}
+\def\ptotDCMINUSIEBCa{{Dc-_{8412}}}
+\def\ptotDCMINUSIEBCia{{Dc-_{8412}}_{[\ptotiota]}}
+\def\ptotDCMINUSIEAIb#1{{Dc-_{8408}}(#1)}
+\def\ptotDCMINUSIEAILBRiRBRARoa{{Dc-_{8408}}_{[\ptotiota \rightarrow \ptotomicron]}}
+\def\ptotDCMINUSIDJHia{{Dc-_{8397}}_{[\ptotiota]}}
+\def\ptotDCMINUSICICa{{Dc-_{8282}}}
+\def\ptotDCMINUSICICia{{Dc-_{8282}}_{[\ptotiota]}}
+\def\ptotDCMINUSIDDFa{{Dc-_{8335}}}
+\def\ptotDCMINUSIDDFia{{Dc-_{8335}}_{[\ptotiota]}}
+\def\ptotDCMINUSIDBCa{{Dc-_{8312}}}
+\def\ptotDCMINUSIDCHa{{Dc-_{8327}}}
+\def\ptotDCMINUSIDCHia{{Dc-_{8327}}_{[\ptotiota]}}
+\def\ptotDCMINUSIDCDb#1{{Dc-_{8323}}(#1)}
+\def\ptotDCMINUSIDCDLBRiRBRARoa{{Dc-_{8323}}_{[\ptotiota \rightarrow \ptotomicron]}}
+\def\ptotDCMINUSIDBCia{{Dc-_{8312}}_{[\ptotiota]}}
+\def\ptotQb#1{{Q}(#1)}
+\def\ptotDCMINUSICJDa{{Dc-_{8293}}}
+\def\ptotDCMINUSICJDia{{Dc-_{8293}}_{[\ptotiota]}}
+\def\ptotQLBRiRBRARob#1{{Q}_{[\ptotiota \rightarrow \ptotomicron]}(#1)}
+\def\ptotMb#1{{M}(#1)}
+\def\ptotMLBRiRBRARob#1{{M}_{[\ptotiota \rightarrow \ptotomicron]}(#1)}
+\def\ptotDCMINUSIDFAa{{Dc-_{8350}}}
+\def\ptotDCMINUSIDFAia{{Dc-_{8350}}_{[\ptotiota]}}
+\def\ptotDCMINUSIDGGa{{Dc-_{8366}}}
+\def\ptotDCMINUSIDGGia{{Dc-_{8366}}_{[\ptotiota]}}
+\def\ptotDCMINUSIEHCa{{Dc-_{8472}}}
+\def\ptotDCMINUSIEHCia{{Dc-_{8472}}_{[\ptotiota]}}
+\def\ptotDCMINUSIEEJa{{Dc-_{8449}}}
+\def\ptotDCMINUSIEGEa{{Dc-_{8464}}}
+\def\ptotDCMINUSIEGEia{{Dc-_{8464}}_{[\ptotiota]}}
+\def\ptotDCMINUSIEGAb#1{{Dc-_{8460}}(#1)}
+\def\ptotDCMINUSIEGALBRiRBRARoa{{Dc-_{8460}}_{[\ptotiota \rightarrow \ptotomicron]}}
+\def\ptotDCMINUSIEEJia{{Dc-_{8449}}_{[\ptotiota]}}
+\def\ptotNb#1{{N}(#1)}
+\def\ptotNCa{{N_{2}}}
+\def\ptotNCia{{N_{2}}_{[\ptotiota]}}
+\def\ptotDCMINUSIDGCa{{Dc-_{8362}}}
+\def\ptotNLBRiRBRARob#1{{N}_{[\ptotiota \rightarrow \ptotomicron]}(#1)}
+\def\ptotDCMINUSIDGCia{{Dc-_{8362}}_{[\ptotiota]}}
+\def\ptotLDBb#1{{Ld_{1}}(#1)}
+\def\ptotNBa{{N_{1}}}
+\def\ptotNa{{N}}
+\def\ptotFc#1#2{{F}(#1,#2)}
+\def\ptotNia{{N}_{[\ptotiota]}}
+\def\ptotDCMINUSICBCa{{Dc-_{8212}}}
+\def\ptotDCMINUSICBCia{{Dc-_{8212}}_{[\ptotiota]}}
+\def\ptotDCMINUSICAIb#1{{Dc-_{8208}}(#1)}
+\def\ptotDCMINUSICAILBRiRBRARoa{{Dc-_{8208}}_{[\ptotiota \rightarrow \ptotomicron]}}
+\def\ptotYa{{Y}}
+\def\ptotEb#1{{E}(#1)}
+\def\ptotYia{{Y}_{[\ptotiota]}}
+\def\ptotDCMINUSICGFa{{Dc-_{8265}}}
+\def\ptotDCMINUSICGFia{{Dc-_{8265}}_{[\ptotiota]}}
+\def\ptotONEa{{One}}
+\def\ptotDCMINUSICGBb#1{{Dc-_{8261}}(#1)}
+\def\ptotDCMINUSICGBLBRiRBRARoa{{Dc-_{8261}}_{[\ptotiota \rightarrow \ptotomicron]}}
+\def\ptotDCMINUSICBFa{{Dc-_{8215}}}
+\def\ptotDCMINUSICEIa{{Dc-_{8248}}}
+\def\ptotDCMINUSICEIia{{Dc-_{8248}}_{[\ptotiota]}}
+\def\ptotONEia{{One}_{[\ptotiota]}}
+\def\ptotDCMINUSICEEb#1{{Dc-_{8244}}(#1)}
+\def\ptotDCMINUSICEELBRiRBRARoa{{Dc-_{8244}}_{[\ptotiota \rightarrow \ptotomicron]}}
+\def\ptotDCMINUSICBFia{{Dc-_{8215}}_{[\ptotiota]}}
+\def\ptotSb#1{{S}(#1)}
+\def\ptotDb#1{{D}(#1)}
+\def\ptotDLBRiRBRARob#1{{D}_{[\ptotiota \rightarrow \ptotomicron]}(#1)}
+\def\ptotXa{{X}}
+\def\ptotNBia{{N_{1}}_{[\ptotiota]}}
+\def\ptotSLBRiRBRARib#1{{S}_{[\ptotiota \rightarrow \ptotiota]}(#1)}
+\def\ptotFLBRiKOMiRBRARic#1#2{{F}_{[(\ptotiota,\ptotiota)\rightarrow \ptotiota]}(#1,#2)}
+\def\ptotELBRiRBRARob#1{{E}_{[\ptotiota \rightarrow \ptotomicron]}(#1)}
+\def\ptotXia{{X}_{[\ptotiota]}}
+\def\ptotLDBLBRiRBRARoa{{Ld_{1}}_{[\ptotiota \rightarrow \ptotomicron]}}
+\def\ptot=DEFLBRLBRiRBRARoKOMLBRiRBRARoRBRARoc#1#2{{=Def}_{[(\ptotiota \rightarrow \ptotomicron,\ptotiota \rightarrow \ptotomicron)\rightarrow \ptotomicron]}(#1,#2)}
+
+%% The predefined macro-file.
+\input{/home/chris/omega/omega-3/prog/post2tex/signature.tex}
+
+%% The ND-proof.
+\begin{footnotesize}\begin{longtable}{p{2.5cm}p{2cm}@{$\,\vdash\,$}p{8cm}p{3cm}}
+ \pl{Ld1}{Ld1 }{$\ptot=DEFLBRLBRiRBRARoKOMLBRiRBRARoRBRARoc{\ptotLDBLBRiRBRARoa}{\lambda \ptotXia \lambdot \ptotELBRiRBRARob{\ptotFLBRiKOMiRBRARic{\ptotSLBRiRBRARib{\ptotNBia}}{\ptotXa}}}$}{$\mbox{Local-Def}$}
+ \pl{A5}{A5 }{$ \posttotexforall\ptotXia \lambdot [\ptotDLBRiRBRARob{\ptotXa} \posttoteximplies \ptotDb{\ptotSb{\ptotXa}}]$}{$\mbox{Hyp}$}
+ \pl{L10}{${\cal H}_{1}$ }{$ \posttotexforall\ptotDCMINUSICBFia \lambdot [[ \posttotexforall\ptotDCMINUSICEELBRiRBRARoa \lambdot [[\ptotDCMINUSICEEb{\ptotONEia} \posttotexand  \posttotexforall\ptotDCMINUSICEIia \lambdot [\ptotDCMINUSICEEb{\ptotDCMINUSICEIa} \posttoteximplies \ptotDCMINUSICEEb{\ptotSb{\ptotDCMINUSICEIa}}]] \posttoteximplies \ptotDCMINUSICEEb{\ptotDCMINUSICBFa}] \posttotexand \ptotDb{\ptotDCMINUSICBFa}] \posttoteximplies [ \posttotexforall\ptotDCMINUSICGBLBRiRBRARoa \lambdot [[\ptotDCMINUSICGBb{\ptotONEa} \posttotexand  \posttotexforall\ptotDCMINUSICGFia \lambdot [\ptotDCMINUSICGBb{\ptotDCMINUSICGFa} \posttoteximplies \ptotDCMINUSICGBb{\ptotSb{\ptotDCMINUSICGFa}}]] \posttoteximplies \ptotDCMINUSICGBb{\ptotSb{\ptotDCMINUSICBFa}}] \posttotexand \ptotDb{\ptotSb{\ptotDCMINUSICBFa}}]]$}{$\mbox{Otter}$  A5}
+ \pl{L9}{${\cal H}_{1}$ }{$ \posttotexforall\ptotYia \lambdot [\ptotEb{\ptotYa} \posttoteximplies \ptotEb{\ptotSb{\ptotYa}}]$}{$\mbox{Defsi}$  L10}
+ \pl{A4}{A4 }{$\ptotDb{\ptotONEa}$}{$\mbox{Hyp}$}
+ \pl{L8}{${\cal H}_{1}$ }{$[ \posttotexforall\ptotDCMINUSICAILBRiRBRARoa \lambdot [[\ptotDCMINUSICAIb{\ptotONEa} \posttotexand  \posttotexforall\ptotDCMINUSICBCia \lambdot [\ptotDCMINUSICAIb{\ptotDCMINUSICBCa} \posttoteximplies \ptotDCMINUSICAIb{\ptotSb{\ptotDCMINUSICBCa}}]] \posttoteximplies \ptotDCMINUSICAIb{\ptotONEa}] \posttotexand \ptotDb{\ptotONEa}]$}{$\mbox{Otter}$  A4}
+ \pl{L7}{${\cal H}_{1}$ }{$\ptotEb{\ptotONEa}$}{$\mbox{Defsi}$  L8}
+ \pl{L11}{${\cal H}_{1}$ }{$\ptotEb{\ptotSb{\ptotONEa}}$}{$\mbox{Otter}$  L7,L9}
+ \pl{A1}{A1 }{$ \posttotexforall\ptotNia \lambdot \ptotFc{\ptotNa}{\ptotONEa} = \ptotSb{\ptotONEa}$}{$\mbox{Hyp}$}
+ \pl{L28}{${\cal H}_{2}$ }{$\ptotEb{\ptotFc{\ptotSb{\ptotNBa}}{\ptotONEa}}$}{$\mbox{Otter}$  A1,L11}
+ \pl{L27}{${\cal H}_{2}$ }{$\ptotLDBb{\ptotONEa}$}{$\mbox{Defn-Contract-Local-Def}$  L28,Ld1}
+ \pl{L25}{L25 }{$ \posttotexforall\ptotDCMINUSIDGCia \lambdot [\ptotNLBRiRBRARob{\ptotDCMINUSIDGCa} \posttoteximplies \ptotEb{\ptotFc{\ptotNBa}{\ptotDCMINUSIDGCa}}]$}{$\mbox{Hyp}$}
+ \pl{L31}{L31 }{$\ptotLDBb{\ptotNCia}$}{$\mbox{Hyp}$}
+ \pl{L33}{Ld1, L31 }{$\ptotEb{\ptotFc{\ptotSb{\ptotNBa}}{\ptotNCa}}$}{$\mbox{Defn-Expand-Local-Def}$  L31,Ld1}
+ \pl{L34}{Ld1, L31 }{$[\ptotNb{\ptotFc{\ptotSb{\ptotNBa}}{\ptotNCa}} \posttotexand \ptotDb{\ptotFc{\ptotSb{\ptotNBa}}{\ptotNCa}}]$}{$\mbox{Defne}$  L33}
+ \pl{A3}{A3 }{$ \posttotexforall\ptotNa,\ptotXia \lambdot \ptotFc{\ptotSb{\ptotNa}}{\ptotSb{\ptotXa}} = \ptotFc{\ptotNa}{\ptotFc{\ptotSb{\ptotNa}}{\ptotXa}}$}{$\mbox{Hyp}$}
+ \pl{L35}{${\cal H}_{3}$ }{$\ptotEb{\ptotFc{\ptotSb{\ptotNBa}}{\ptotSb{\ptotNCa}}}$}{$\mbox{Otter}$  A3,L34,L25}
+ \pl{L32}{${\cal H}_{3}$ }{$\ptotLDBb{\ptotSb{\ptotNCa}}$}{$\mbox{Defn-Contract-Local-Def}$  L35,Ld1}
+ \pl{L30}{${\cal H}_{2}$ }{$[\ptotLDBb{\ptotNCa} \posttoteximplies \ptotLDBb{\ptotSb{\ptotNCa}}]$}{${\posttoteximplies} I$  L32}
+ \pl{L29}{${\cal H}_{2}$ }{$ \posttotexforall\ptotXia \lambdot [\ptotLDBb{\ptotXa} \posttoteximplies \ptotLDBb{\ptotSb{\ptotXa}}]$}{$\posttotexforall I$  L30}
+ \pl{L42}{${\cal H}_{2}$ }{$ \posttotexforall\ptotDCMINUSIEEJia \lambdot [ \posttotexforall\ptotDCMINUSIEGALBRiRBRARoa \lambdot [[\ptotDCMINUSIEGAb{\ptotONEa} \posttotexand  \posttotexforall\ptotDCMINUSIEGEia \lambdot [\ptotDCMINUSIEGAb{\ptotDCMINUSIEGEa} \posttoteximplies \ptotDCMINUSIEGAb{\ptotSb{\ptotDCMINUSIEGEa}}]] \posttoteximplies \ptotDCMINUSIEGAb{\ptotDCMINUSIEEJa}] \posttoteximplies \ptotLDBb{\ptotDCMINUSIEEJa}]$}{$\mbox{Otter}$  L29,L27}
+ \pl{L41}{${\cal H}_{2}$ }{$ \posttotexforall\ptotXia \lambdot [\ptotNLBRiRBRARob{\ptotXa} \posttoteximplies \ptotLDBb{\ptotXa}]$}{$\mbox{Defni}$  L42}
+ \pl{L43}{${\cal H}_{2}$ }{$ \posttotexforall\ptotDCMINUSIEHCia \lambdot [\ptotNb{\ptotDCMINUSIEHCa} \posttoteximplies \ptotEb{\ptotFc{\ptotSb{\ptotNBa}}{\ptotDCMINUSIEHCa}}]$}{$\mbox{Defn-Expand-Local-Def}$  L41,Ld1}
+ \pl{L26}{${\cal H}_{2}$ }{$ \posttotexforall\ptotDCMINUSIDGGia \lambdot [\ptotNb{\ptotDCMINUSIDGGa} \posttoteximplies \ptotEb{\ptotFc{\ptotSb{\ptotNBa}}{\ptotDCMINUSIDGGa}}]$}{$\mbox{Otter}$  L43}
+ \pl{L24}{${\cal H}_{1}$ }{$[ \posttotexforall\ptotDCMINUSIDGCia \lambdot [\ptotNb{\ptotDCMINUSIDGCa} \posttoteximplies \ptotEb{\ptotFc{\ptotNBa}{\ptotDCMINUSIDGCa}}] \posttoteximplies  \posttotexforall\ptotDCMINUSIDGGia \lambdot [\ptotNb{\ptotDCMINUSIDGGa} \posttoteximplies \ptotEb{\ptotFc{\ptotSb{\ptotNBa}}{\ptotDCMINUSIDGGa}}]]$}{${\posttoteximplies} I$  L26}
+ \pl{L23}{${\cal H}_{1}$ }{$ \posttotexforall\ptotDCMINUSIDFAia \lambdot [ \posttotexforall\ptotDCMINUSIDGCia \lambdot [\ptotNb{\ptotDCMINUSIDGCa} \posttoteximplies \ptotEb{\ptotFc{\ptotDCMINUSIDFAa}{\ptotDCMINUSIDGCa}}] \posttoteximplies  \posttotexforall\ptotDCMINUSIDGGia \lambdot [\ptotNb{\ptotDCMINUSIDGGa} \posttoteximplies \ptotEb{\ptotFc{\ptotSb{\ptotDCMINUSIDFAa}}{\ptotDCMINUSIDGGa}}]]$}{$\posttotexforall I$  L24}
+ \pl{L22}{${\cal H}_{1}$ }{$ \posttotexforall\ptotNa \lambdot [\ptotMLBRiRBRARob{\ptotNa} \posttoteximplies \ptotMb{\ptotSb{\ptotNa}}]$}{$\mbox{Defni*}$  L23}
+ \pl{L17}{${\cal H}_{1}$ }{$\ptotEb{\ptotFc{\ptotONEa}{\ptotONEa}}$}{$\mbox{Otter}$  A1,L11}
+ \pl{L16}{${\cal H}_{1}$ }{$\ptotQLBRiRBRARob{\ptotONEa}$}{$\mbox{Defni}$  L17}
+ \pl{A2}{A2 }{$ \posttotexforall\ptotXia \lambdot \ptotFc{\ptotONEa}{\ptotSb{\ptotXa}} = \ptotSb{\ptotSb{\ptotFc{\ptotONEa}{\ptotXa}}}$}{$\mbox{Hyp}$}
+ \pl{L19}{${\cal H}_{1}$ }{$ \posttotexforall\ptotDCMINUSICJDia \lambdot [\ptotEb{\ptotFc{\ptotONEa}{\ptotDCMINUSICJDa}} \posttoteximplies \ptotEb{\ptotFc{\ptotONEa}{\ptotSb{\ptotDCMINUSICJDa}}}]$}{$\mbox{Otter}$  A2,L9}
+ \pl{L18}{${\cal H}_{1}$ }{$ \posttotexforall\ptotXia \lambdot [\ptotQb{\ptotXa} \posttoteximplies \ptotQb{\ptotSb{\ptotXa}}]$}{$\mbox{Defni*}$  L19}
+ \pl{L20}{${\cal H}_{1}$ }{$ \posttotexforall\ptotDCMINUSIDBCia \lambdot [ \posttotexforall\ptotDCMINUSIDCDLBRiRBRARoa \lambdot [[\ptotDCMINUSIDCDb{\ptotONEa} \posttotexand  \posttotexforall\ptotDCMINUSIDCHia \lambdot [\ptotDCMINUSIDCDb{\ptotDCMINUSIDCHa} \posttoteximplies \ptotDCMINUSIDCDb{\ptotSb{\ptotDCMINUSIDCHa}}]] \posttoteximplies \ptotDCMINUSIDCDb{\ptotDCMINUSIDBCa}] \posttoteximplies \ptotQb{\ptotDCMINUSIDBCa}]$}{$\mbox{Otter}$  L18,L16}
+ \pl{L15}{${\cal H}_{1}$ }{$ \posttotexforall\ptotXia \lambdot [\ptotNLBRiRBRARob{\ptotXa} \posttoteximplies \ptotQb{\ptotXa}]$}{$\mbox{Defni}$  L20}
+ \pl{L21}{${\cal H}_{1}$ }{$ \posttotexforall\ptotDCMINUSIDDFia \lambdot [\ptotNb{\ptotDCMINUSIDDFa} \posttoteximplies \ptotEb{\ptotFc{\ptotONEa}{\ptotDCMINUSIDDFa}}]$}{$\mbox{Defne}$  L15}
+ \pl{L14}{${\cal H}_{1}$ }{$ \posttotexforall\ptotDCMINUSICICia \lambdot [\ptotNb{\ptotDCMINUSICICa} \posttoteximplies \ptotEb{\ptotFc{\ptotONEa}{\ptotDCMINUSICICa}}]$}{$\mbox{Otter}$  L21}
+ \pl{L13}{${\cal H}_{1}$ }{$\ptotMb{\ptotONEa}$}{$\mbox{Defni}$  L14}
+ \pl{L37}{${\cal H}_{1}$ }{$ \posttotexforall\ptotDCMINUSIDJHia \lambdot [ \posttotexforall\ptotDCMINUSIEAILBRiRBRARoa \lambdot [[\ptotDCMINUSIEAIb{\ptotONEa} \posttotexand  \posttotexforall\ptotDCMINUSIEBCia \lambdot [\ptotDCMINUSIEAIb{\ptotDCMINUSIEBCa} \posttoteximplies \ptotDCMINUSIEAIb{\ptotSb{\ptotDCMINUSIEBCa}}]] \posttoteximplies \ptotDCMINUSIEAIb{\ptotDCMINUSIDJHa}] \posttoteximplies \ptotMb{\ptotDCMINUSIDJHa}]$}{$\mbox{Otter}$  L13,L22}
+ \pl{L36}{${\cal H}_{1}$ }{$ \posttotexforall\ptotNNia \lambdot [\ptotNb{\ptotNNa} \posttoteximplies \ptotMb{\ptotNNa}]$}{$\mbox{Defni}$  L37}
+ \pl{L38}{${\cal H}_{1}$ }{$ \posttotexforall\ptotDCMINUSIECCia \lambdot [\ptotNb{\ptotDCMINUSIECCa} \posttoteximplies  \posttotexforall\ptotDCMINUSIEDAia \lambdot [\ptotNb{\ptotDCMINUSIEDAa} \posttoteximplies \ptotEb{\ptotFc{\ptotDCMINUSIECCa}{\ptotDCMINUSIEDAa}}]]$}{$\mbox{Defne}$  L36}
+ \pl{L12}{${\cal H}_{1}$ }{$ \posttotexforall\ptotNNia \lambdot [\ptotNb{\ptotNNa} \posttoteximplies  \posttotexforall\ptotXia \lambdot [\ptotNb{\ptotXa} \posttoteximplies \ptotEb{\ptotFc{\ptotNNa}{\ptotXa}}]]$}{$\mbox{Otter}$  L38}
+ \pl{L6}{${\cal H}_{1}$ }{$ \posttotexforall\ptotDCMINUSIBIJLBRiRBRARoa \lambdot [[\ptotDCMINUSIBIJb{\ptotONEa} \posttotexand  \posttotexforall\ptotDCMINUSIBJDia \lambdot [\ptotDCMINUSIBIJb{\ptotDCMINUSIBJDa} \posttoteximplies \ptotDCMINUSIBIJb{\ptotSb{\ptotDCMINUSIBJDa}}]] \posttoteximplies \ptotDCMINUSIBIJb{\ptotSb{\ptotSb{\ptotSb{\ptotSb{\ptotONEa}}}}}]$}{$\mbox{Otter}$}
+ \pl{L5}{${\cal H}_{1}$ }{$\ptotNb{\ptotSb{\ptotSb{\ptotSb{\ptotSb{\ptotONEa}}}}}$}{$\mbox{Defsi}$  L6}
+ \pl{L39}{${\cal H}_{1}$ }{$\ptotEb{\ptotFc{\ptotSb{\ptotSb{\ptotSb{\ptotSb{\ptotONEa}}}}}{\ptotSb{\ptotSb{\ptotSb{\ptotSb{\ptotONEa}}}}}}$}{$\mbox{Otter}$  L5,L12}
+ \pl{L40}{${\cal H}_{1}$ }{$[\ptotNb{\ptotFc{\ptotSb{\ptotSb{\ptotSb{\ptotSb{\ptotONEa}}}}}{\ptotSb{\ptotSb{\ptotSb{\ptotSb{\ptotONEa}}}}}} \posttotexand \ptotDb{\ptotFc{\ptotSb{\ptotSb{\ptotSb{\ptotSb{\ptotONEa}}}}}{\ptotSb{\ptotSb{\ptotSb{\ptotSb{\ptotONEa}}}}}}]$}{$\mbox{Defne}$  L39}
+ \pl{Conc}{${\cal H}_{1}$ }{$\ptotDb{\ptotFc{\ptotSb{\ptotSb{\ptotSb{\ptotSb{\ptotONEa}}}}}{\ptotSb{\ptotSb{\ptotSb{\ptotSb{\ptotONEa}}}}}}$}{$\mbox{Otter}$  L40}
+\end{longtable}\end{footnotesize}
+%% The abbreviations for the Hypotheses.
+\begin{tiny}\begin{tabular}{p{\textwidth}}
+${\cal H}_{1}$ = {A1, A2, A3, A4, A5, Ld1}\\[1ex]
+${\cal H}_{2}$ = {A1, A2, A3, A4, A5, Ld1, L25}\\[1ex]
+${\cal H}_{3}$ = {A1, A2, A3, A4, A5, Ld1, L25, L31}\\[1ex]
+\end{tabular}\end{tiny}
+\end{document}

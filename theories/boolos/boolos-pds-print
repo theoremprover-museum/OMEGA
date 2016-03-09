@@ -1,0 +1,321 @@
+
+OMEGA: show-pds
+
+                                                                                                                
+A1   (A1)       ! (FORALL [N:I] (= (F N ONE) (S ONE)))                                                       HYP
+                                                                                                                
+A2   (A2)       ! (FORALL [X:I]                                                                              HYP
+                   (=                                                                                           
+                    (F ONE (S X))                                                                               
+                    (S (S (F ONE X)))))                                                                         
+                                                                                                                
+A3   (A3)       ! (FORALL [N:I,X:I]                                                                          HYP
+                   (=                                                                                           
+                    (F (S N) (S X))                                                                             
+                    (F N (F (S N) X))))                                                                         
+                                                                                                                
+A4   (A4)       ! (D ONE)                                                                                    HYP
+                                                                                                                
+A5   (A5)       ! (FORALL [X:I]                                                                              HYP
+                   (IMPLIES (D X) (D (S X))))                                                                   
+                                                                                                                
+L25  (L25)      ! (FORALL [DC-8362:I]                                                                        HYP
+                   (IMPLIES                                                                                     
+                    (N DC-8362)                                                                                 
+                    (E (F N1 DC-8362))))                                                                        
+                                                                                                                
+L26  (L25 A1    ! (FORALL [DC-8366:I]                                                         OTTER: (NIL) (L43)
+      A2 A3 A4     (IMPLIES                                                                                     
+      A5)           (N DC-8366)                                                                                 
+                    (E (F (S N1) DC-8366))))                                                                    
+                                                                                                                
+L24  (A1 A2 A3  ! (IMPLIES                                                                           IMPI: (L26)
+      A4 A5)       (FORALL [DC-8362:I]                                                                          
+                    (IMPLIES                                                                                    
+                     (N DC-8362)                                                                                
+                     (E (F N1 DC-8362))))                                                                       
+                   (FORALL [DC-8366:I]                                                                          
+                    (IMPLIES                                                                                    
+                     (N DC-8366)                                                                                
+                     (E (F (S N1) DC-8366)))))                                                                  
+                                                                                                                
+L23  (A1 A2 A3  ! (FORALL [DC-8350:I]                                                        FORALLI: (N1) (L24)
+      A4 A5)       (IMPLIES                                                                                     
+                    (FORALL [DC-8362:I]                                                                         
+                     (IMPLIES                                                                                   
+                      (N DC-8362)                                                                               
+                      (E (F DC-8350 DC-8362))))                                                                 
+                    (FORALL [DC-8366:I]                                                                         
+                     (IMPLIES                                                                                   
+                      (N DC-8366)                                                                               
+                      (E (F (S DC-8350) DC-8366))))))                                                           
+                                                                                                                
+L19  (A1 A2 A3  ! (FORALL [DC-8293:I]                                                       OTTER: (NIL) (A2 L9)
+      A4 A5)       (IMPLIES                                                                                     
+                    (E (F ONE DC-8293))                                                                         
+                    (E (F ONE (S DC-8293)))))                                                                   
+                                                                                                                
+L10  (A1 A2 A3  ! (FORALL [DC-8215:I]                                                          OTTER: (NIL) (A5)
+      A4 A5)       (IMPLIES                                                                                     
+                    (AND                                                                                        
+                     (FORALL [DC-8244:(O I)]                                                                    
+                      (IMPLIES                                                                                  
+                       (AND                                                                                     
+                        (DC-8244 ONE)                                                                           
+                        (FORALL [DC-8248:I]                                                                     
+                         (IMPLIES                                                                               
+                          (DC-8244 DC-8248)                                                                     
+                          (DC-8244 (S DC-8248)))))                                                              
+                       (DC-8244 DC-8215)))                                                                      
+                     (D DC-8215))                                                                               
+                    (AND                                                                                        
+                     (FORALL [DC-8261:(O I)]                                                                    
+                      (IMPLIES                                                                                  
+                       (AND                                                                                     
+                        (DC-8261 ONE)                                                                           
+                        (FORALL [DC-8265:I]                                                                     
+                         (IMPLIES                                                                               
+                          (DC-8261 DC-8265)                                                                     
+                          (DC-8261 (S DC-8265)))))                                                              
+                       (DC-8261 (S DC-8215))))                                                                  
+                     (D (S DC-8215)))))                                                                         
+                                                                                                                
+L8   (A1 A2 A3  ! (AND                                                                         OTTER: (NIL) (A4)
+      A4 A5)       (FORALL [DC-8208:(O I)]                                                                      
+                    (IMPLIES                                                                                    
+                     (AND                                                                                       
+                      (DC-8208 ONE)                                                                             
+                      (FORALL [DC-8212:I]                                                                       
+                       (IMPLIES                                                                                 
+                        (DC-8208 DC-8212)                                                                       
+                        (DC-8208 (S DC-8212)))))                                                                
+                     (DC-8208 ONE)))                                                                            
+                   (D ONE))                                                                                     
+                                                                                                                
+L6   (A1 A2 A3  ! (FORALL [DC-8189:(O I)]                                                           OTTER: (NIL)
+      A4 A5)       (IMPLIES                                                                                     
+                    (AND                                                                                        
+                     (DC-8189 ONE)                                                                              
+                     (FORALL [DC-8193:I]                                                                        
+                      (IMPLIES                                                                                  
+                       (DC-8189 DC-8193)                                                                        
+                       (DC-8189 (S DC-8193)))))                                                                 
+                    (DC-8189 (S (S (S (S ONE)))))))                                                             
+                                                                                                                
+L4   (A1 A2 A3  ! (FORALL [DC-8149:I]                                                               OTTER: (NIL)
+      A4 A5)       (IMPLIES                                                                                     
+                    (FORALL [DC-8166:(O I)]                                                                     
+                     (IMPLIES                                                                                   
+                      (AND                                                                                      
+                       (DC-8166 ONE)                                                                            
+                       (FORALL [DC-8170:I]                                                                      
+                        (IMPLIES                                                                                
+                         (DC-8166 DC-8170)                                                                      
+                         (DC-8166 (S DC-8170)))))                                                               
+                      (DC-8166 DC-8149)))                                                                       
+                    (FORALL [DC-8175:(O I)]                                                                     
+                     (IMPLIES                                                                                   
+                      (AND                                                                                      
+                       (DC-8175 ONE)                                                                            
+                       (FORALL [DC-8179:I]                                                                      
+                        (IMPLIES                                                                                
+                         (DC-8175 DC-8179)                                                                      
+                         (DC-8175 (S DC-8179)))))                                                               
+                      (DC-8175 (S DC-8149))))))                                                                 
+                                                                                                                
+L2   (A1 A2 A3  ! (FORALL [DC-8142:(O I)]                                                           OTTER: (NIL)
+      A4 A5)       (IMPLIES                                                                                     
+                    (AND                                                                                        
+                     (DC-8142 ONE)                                                                              
+                     (FORALL [DC-8146:I]                                                                        
+                      (IMPLIES                                                                                  
+                       (DC-8142 DC-8146)                                                                        
+                       (DC-8142 (S DC-8146)))))                                                                 
+                    (DC-8142 ONE)))                                                                             
+                                                                                                                
+L1   (A1 A2 A3  ! (N ONE)                                                                      DefsI: ((=)) (L2)
+      A4 A5)                                                                                                    
+                                                                                                                
+L3   (A1 A2 A3  ! (FORALL [Y:I]                                                                DefsI: ((=)) (L4)
+      A4 A5)       (IMPLIES (N Y) (N (S Y))))                                                                   
+                                                                                                                
+L5   (A1 A2 A3  ! (N (S (S (S (S ONE)))))                                                      DefsI: ((=)) (L6)
+      A4 A5)                                                                                                    
+                                                                                                                
+L7   (A1 A2 A3  ! (E ONE)                                                                      DefsI: ((=)) (L8)
+      A4 A5)                                                                                                    
+                                                                                                                
+L9   (A1 A2 A3  ! (FORALL [Y:I]                                                               DefsI: ((=)) (L10)
+      A4 A5)       (IMPLIES (E Y) (E (S Y))))                                                                   
+                                                                                                                
+L11  (A1 A2 A3  ! (E (S ONE))                                                               OTTER: (NIL) (L7 L9)
+      A4 A5)                                                                                                    
+                                                                                                                
+L17  (A1 A2 A3  ! (E (F ONE ONE))                                                          OTTER: (NIL) (A1 L11)
+      A4 A5)                                                                                                    
+                                                                                                                
+L16  (A1 A2 A3  ! (Q ONE)                                               DefnI: (Q ([X].(E (F ONE X))) (0)) (L17)
+      A4 A5)                                                                                                    
+                                                                                                                
+L18  (A1 A2 A3  ! (FORALL [X:I]                        defni*: (Q ([X].(E (F ONE X))) ((1 0 2 0) (1 0 1 0))) (L19)
+      A4 A5)       (IMPLIES (Q X) (Q (S X))))                                                                   
+                                                                                                                
+L20  (A1 A2 A3  ! (FORALL [DC-8312:I]                                                     OTTER: (NIL) (L18 L16)
+      A4 A5)       (IMPLIES                                                                                     
+                    (FORALL [DC-8323:(O I)]                                                                     
+                     (IMPLIES                                                                                   
+                      (AND                                                                                      
+                       (DC-8323 ONE)                                                                            
+                       (FORALL [DC-8327:I]                                                                      
+                        (IMPLIES                                                                                
+                         (DC-8323 DC-8327)                                                                      
+                         (DC-8323 (S DC-8327)))))                                                               
+                      (DC-8323 DC-8312)))                                                                       
+                    (Q DC-8312)))                                                                               
+                                                                                                                
+L15  (A1 A2 A3  ! (FORALL [X:I] (IMPLIES (N X) (Q X)))                                                 DefnI: (N
+      A4 A5)                                                                                               ([Z].
+                                                                                               (FORALL [X:(O I)]
+                                                                                                        (IMPLIES
+                                                                                                    (AND (X ONE)
+                                                                       (FORALL [Y:I] (IMPLIES (X Y) (X (S Y)))))
+                                                                                                        (X Z))))
+                                                                                                (1 0 1 0)) (L20)
+                                                                                                                
+L21  (A1 A2 A3  ! (FORALL [DC-8335:I]                             DefnE: (Q ([X].(E (F ONE X))) (1 0 2 0)) (L15)
+      A4 A5)       (IMPLIES                                                                                     
+                    (N DC-8335)                                                                                 
+                    (E (F ONE DC-8335))))                                                                       
+                                                                                                                
+L14  (A1 A2 A3  ! (FORALL [DC-8282:I]                                                         OTTER: (NIL) (L21)
+      A4 A5)       (IMPLIES                                                                                     
+                    (N DC-8282)                                                                                 
+                    (E (F ONE DC-8282))))                                                                       
+                                                                                                                
+L13  (A1 A2 A3  ! (M ONE)                                                                              DefnI: (M
+      A4 A5)                                                  ([NN].(FORALL [X:I] (IMPLIES (N X) (E (F NN X)))))
+                                                                                                      (0)) (L14)
+                                                                                                                
+L22  (A1 A2 A3  ! (FORALL [N:I]                                                                       defni*: (M
+      A4 A5)       (IMPLIES (M N) (M (S N))))                                                             ([NN].
+                                                                    (FORALL [X:I] (IMPLIES (N X) (E (F NN X)))))
+                                                                                    ((1 0 2 0) (1 0 1 0))) (L23)
+                                                                                                                
+L12  (A1 A2 A3  ! (FORALL [NN:I]                                                              OTTER: (NIL) (L38)
+      A4 A5)       (IMPLIES                                                                                     
+                    (N NN)                                                                                      
+                    (FORALL [X:I]                                                                               
+                     (IMPLIES (N X) (E (F NN X))))))                                                            
+                                                                                                                
+LD1  (LD1)      ! (=DEF LD1 ([X].(E (F (S N1) X))))                                                    LOCAL-DEF
+                                                                                                                
+L39  (A1 A2 A3  ! (E                                                                       OTTER: (NIL) (L5 L12)
+      A4 A5)       (F                                                                                           
+                    (S (S (S (S ONE))))                                                                         
+                    (S (S (S (S ONE))))))                                                                       
+                                                                                                                
+L40  (A1 A2 A3  ! (AND                                              DefnE: (E ([Z].(AND (N Z) (D Z))) (0)) (L39)
+      A4 A5)       (N                                                                                           
+                    (F                                                                                          
+                     (S (S (S (S ONE))))                                                                        
+                     (S (S (S (S ONE))))))                                                                      
+                   (D                                                                                           
+                    (F                                                                                          
+                     (S (S (S (S ONE))))                                                                        
+                     (S (S (S (S ONE)))))))                                                                     
+                                                                                                                
+L37  (A1 A2 A3  ! (FORALL [DC-8397:I]                                                     OTTER: (NIL) (L13 L22)
+      A4 A5)       (IMPLIES                                                                                     
+                    (FORALL [DC-8408:(O I)]                                                                     
+                     (IMPLIES                                                                                   
+                      (AND                                                                                      
+                       (DC-8408 ONE)                                                                            
+                       (FORALL [DC-8412:I]                                                                      
+                        (IMPLIES                                                                                
+                         (DC-8408 DC-8412)                                                                      
+                         (DC-8408 (S DC-8412)))))                                                               
+                      (DC-8408 DC-8397)))                                                                       
+                    (M DC-8397)))                                                                               
+                                                                                                                
+L36  (A1 A2 A3  ! (FORALL [NN:I]                                                                       DefnI: (N
+      A4 A5)       (IMPLIES (N NN) (M NN)))                                                                ([Z].
+                                                                                               (FORALL [X:(O I)]
+                                                                                                        (IMPLIES
+                                                                                                    (AND (X ONE)
+                                                                       (FORALL [Y:I] (IMPLIES (X Y) (X (S Y)))))
+                                                                                                        (X Z))))
+                                                                                                (1 0 1 0)) (L37)
+                                                                                                                
+L38  (A1 A2 A3  ! (FORALL [DC-8422:I]                                                                  DefnE: (M
+      A4 A5)       (IMPLIES                                   ([NN].(FORALL [X:I] (IMPLIES (N X) (E (F NN X)))))
+                    (N DC-8422)                                                                 (1 0 2 0)) (L36)
+                    (FORALL [DC-8430:I]                                                                         
+                     (IMPLIES                                                                                   
+                      (N DC-8430)                                                                               
+                      (E (F DC-8422 DC-8430))))))                                                               
+                                                                                                                
+L31  (L31)      ! (LD1 N2)                                                                                   HYP
+                                                                                                                
+L33  (L31)      ! (E (F (S N1) N2))                                       DEFN-EXPAND-LOCAL-DEF: ((0)) (L31 LD1)
+                                                                                                                
+L34  (L31)      ! (AND                                              DefnE: (E ([Z].(AND (N Z) (D Z))) (0)) (L33)
+                   (N (F (S N1) N2))                                                                            
+                   (D (F (S N1) N2)))                                                                           
+                                                                                                                
+L28  (L25 A1    ! (E (F (S N1) ONE))                                                       OTTER: (NIL) (A1 L11)
+      A2 A3 A4                                                                                                  
+      A5)                                                                                                       
+                                                                                                                
+L27  (L25 A1    ! (LD1 ONE)                                             DEFN-CONTRACT-LOCAL-DEF: ((0)) (L28 LD1)
+      A2 A3 A4                                                                                                  
+      A5)                                                                                                       
+                                                                                                                
+L35  (L31 L25   ! (E (F (S N1) (S N2)))                                                OTTER: (NIL) (A3 L34 L25)
+      A1 A2 A3                                                                                                  
+      A4 A5)                                                                                                    
+                                                                                                                
+L32  (L31 L25   ! (LD1 (S N2))                                          DEFN-CONTRACT-LOCAL-DEF: ((0)) (L35 LD1)
+      A1 A2 A3                                                                                                  
+      A4 A5)                                                                                                    
+                                                                                                                
+L30  (L25 A1    ! (IMPLIES (LD1 N2) (LD1 (S N2)))                                                    IMPI: (L32)
+      A2 A3 A4                                                                                                  
+      A5)                                                                                                       
+                                                                                                                
+L29  (L25 A1    ! (FORALL [X:I]                                                              FORALLI: (N2) (L30)
+      A2 A3 A4     (IMPLIES (LD1 X) (LD1 (S X))))                                                               
+      A5)                                                                                                       
+                                                                                                                
+L42  (L25 A1    ! (FORALL [DC-8449:I]                                                     OTTER: (NIL) (L29 L27)
+      A2 A3 A4     (IMPLIES                                                                                     
+      A5)           (FORALL [DC-8460:(O I)]                                                                     
+                     (IMPLIES                                                                                   
+                      (AND                                                                                      
+                       (DC-8460 ONE)                                                                            
+                       (FORALL [DC-8464:I]                                                                      
+                        (IMPLIES                                                                                
+                         (DC-8460 DC-8464)                                                                      
+                         (DC-8460 (S DC-8464)))))                                                               
+                      (DC-8460 DC-8449)))                                                                       
+                    (LD1 DC-8449)))                                                                             
+                                                                                                                
+L41  (L25 A1    ! (FORALL [X:I]                                                                        DefnI: (N
+      A2 A3 A4     (IMPLIES (N X) (LD1 X)))                                                                ([Z].
+      A5)                                                                                      (FORALL [X:(O I)]
+                                                                                                        (IMPLIES
+                                                                                                    (AND (X ONE)
+                                                                       (FORALL [Y:I] (IMPLIES (X Y) (X (S Y)))))
+                                                                                                        (X Z))))
+                                                                                                (1 0 1 0)) (L42)
+                                                                                                                
+L43  (L25 A1    ! (FORALL [DC-8472:I]                               DEFN-EXPAND-LOCAL-DEF: ((1 0 2 0)) (L41 LD1)
+      A2 A3 A4     (IMPLIES                                                                                     
+      A5)           (N DC-8472)                                                                                 
+                    (E (F (S N1) DC-8472))))                                                                    
+                                                                                                                
+CONC (A1 A2 A3  ! (D                                                                          OTTER: (NIL) (L40)
+      A4 A5)       (F                                                                                           
+                    (S (S (S (S ONE))))                                                                         
+                    (S (S (S (S ONE))))))                                                                       
+
+OMEGA: 

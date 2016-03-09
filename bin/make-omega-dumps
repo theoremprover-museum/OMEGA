@@ -1,0 +1,138 @@
+#!/bin/csh
+
+unalias cd 
+unalias pwd
+
+set os=${OSTYPE}
+set here=`dirname $0`
+setenv HERE `cd ${here} && pwd`
+setenv OMEGAHOME `cd ${HERE}/../.. && pwd`
+#setenv OMEGAHOME /home/chris/omega
+setenv BOOTLISP ${OMEGAHOME}/ags/sys/boot.lisp
+
+echo "***************************************************************"
+echo "*** NOTE:  Changes in the ~/.clinit.cl file can cause       ***" 
+echo "*** ====   an unpredictable behaviour of this shell script. ***"
+echo "***************************************************************"
+echo ""
+
+if ("${os}" == "solaris") then
+    setenv ALLEGRO /project/omega/lisp/solaris/acl5.0.1/lisp
+else 	
+    setenv ALLEGRO /project/omega/lisp/linux/acl5.0.1/lisp
+endif
+
+echo "***********************************************"
+echo "*** Trying to detect your dump locations... ***"
+echo "***********************************************"
+echo ""
+
+set prefix=~/.oz
+    
+if (-f ${prefix}/mathweb/configs/config.tcshrc) then
+    source ${prefix}/mathweb/configs/config.tcshrc
+endif
+
+echo "*** Reading shared configuration files..."
+
+if (! ${?configs}) then
+    set configdir=${prefix}/mathweb/configs
+else
+    set configdir=${configs}
+endif
+
+if (-f ${configdir}/config) then 
+    source ${configdir}/config
+endif
+if (-f ${configdir}/config.${os}) then 
+    source ${configdir}/config.${os}
+endif
+if (-f ${configdir}/config.${HOST}) then 
+    source ${configdir}/config.${HOST}
+endif
+
+echo "*** Reading users configuration files..."
+
+if (! ${?myconfigs}) then
+    set configdir=${HOME}/.mathweb
+else
+    set configdir=${myconfigs}
+endif
+
+if (-f ${configdir}/config) then 
+    source ${configdir}/config
+endif
+if (-f ${configdir}/config.${os}) then 
+    source ${configdir}/config.${os}
+endif
+if (-f ${configdir}/config.${HOST}) then 
+    source ${configdir}/config.${HOST}
+endif
+
+#
+# Use defaults if config files could not be found
+#
+
+echo ""
+
+if (! ${?OMEGADUMPEMACS}) then
+    echo "*** using default value for "'$OMEGADUMPEMACS'
+    setenv OMEGADUMPEMACS ${HERE}/omega-3-emacs.${os}
+endif
+if (! ${?OMEGADUMPQUIET}) then
+    echo "*** using default value for "'$OMEGADUMPQUIET'
+    setenv OMEGADUMPQUIET ${HERE}/omega-3-quiet.${os}
+endif
+
+echo "********************************************"
+echo "*** Environment: ${os}"       
+echo "***"
+echo "*** Using ALLEGRO at ${ALLEGRO}"
+echo "***"
+echo "*** Loading omega system at ${OMEGAHOME}"
+echo "***"
+echo "*** Writing system dump to" 
+echo "***     ${OMEGADUMPEMACS} and"
+#echo "***     ${OMEGADUMPQUIET}."
+echo "***" 
+echo "********************************************"
+echo ""
+echo "Press RETURN or ENTER to proceed, Ctrl-C to abort."
+echo $< >/dev/null
+
+echo "*** Trying to start ALLEGRO for writing dumps..."
+
+cat ${HERE}/`basename $0`.lisp | ${ALLEGRO} -batch 
+
+if (-f /tmp/temp-omega-emacs) then
+#if ((-f /tmp/temp-omega-emacs)&&(-f /tmp/temp-omega-quiet)) then
+
+    echo "System dump temporarily written."
+
+    \mv /tmp/temp-omega-emacs ${OMEGADUMPEMACS}
+#    \mv /tmp/temp-omega-quiet ${OMEGADUMPQUIET}
+    
+    \rm /tmp/temp-omega-emacs.additives
+#    \rm /tmp/temp-omega-quiet.additives
+
+    echo "********************************************"
+    echo "*** System dumps successfully installed at" 
+    echo "***   ${OMEGADUMPEMACS} and"
+#    echo "***   ${OMEGADUMPQUIET}."
+    echo "***"
+    echo "*** Thanks for using this script."
+    echo "********************************************"
+
+else
+    \rm /tmp/temp-omega-emacs
+#    \rm /tmp/temp-omega-quiet
+    \rm /tmp/temp-omega-emacs.additives
+#    \rm /tmp/temp-omega-quiet.additives
+
+    echo "********************************************"
+    echo "*** Something went wrong while writing "
+    echo "*** temporary dumps at /tmp/"
+    echo "*** Please correct the above errors first."
+    echo "********************************************"
+endif
+ 

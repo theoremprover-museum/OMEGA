@@ -1,0 +1,38 @@
+Das sind alles Beispiele aus dem Analysisbuch von
+Lueneburg und beschaeftigen sich mit Ringen.
+
+Es sind Beispiele erster Ordnung fuer direkte
+Anwendung automatischer Beweiser.
+
+Mit Otter getestet, sollte mit SPASS noch besser gehen.
+
+Die i-Formen sind jeweils die gleichen Probleme, jedoch
+in einer faireren (und daher schwierigeren) Formalisierung.
+
+lue1.2i.post kriegt Otter nicht raus.
+
+Fuer eine schoene Verbalisierung muss ich noch die
+pprint-Files schreiben.
+
+Abfolge der Kommandos:
+
+read-problem lue1.?[i].post
+call-otter-on-node		; alles default moeglich,
+				; gibt man avoid-doubling T ein,
+				; werden die Beweise huebscher, aber
+				; die Trafo dauert laenger
+(stattdessen geht natuerlich auch call-spass-on-node)
+(cleanup-proof)			; nur noetig, wenn man zeigen will,
+				; was das spart, oder wenn man
+				; verbalisieren will
+;WICHTIG: cleanup-proof erst ganz zum Schluss und NUR EINMAL
+; aufrufen!!!
+present
+macroplan
+load-file pprint.lisp
+verbalize
+typeset
+
+Anmerkung: Die Verbalisierung ist nicht so ueberzeugend, da es
+           vor allem auf die Klammerung der Ausdruecke ankommt,
+           die aber unterdrueckt wird.

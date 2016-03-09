@@ -1,0 +1,12 @@
+ALLEGRO           = /project/omega/lisp/linux/acl5.0.1/lisp
+
+OMEGA_DUMP_EMACS  = /home/chris/omega/omega-3/bin/omega-3-emacs-linux.dxl
+
+OMEGA_HOME_FASL   = /project/omega/
+#OMEGA_HOME_FASL   = $(OMEGA_HOME)
+#OMEGA_HOME_FASL   = /home/${USER}/omega/omega-3/
+
+
+#TEMP_OMEGA_DUMP_EMACS  = /tmp/tmp-omega-3-emacs-linux-$(USER)
+TEMP_OMEGA_DUMP_EMACS  = /home/chris/tmp/omega-3-emacs-linux.dxl
+

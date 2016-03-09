@@ -1,0 +1,11 @@
+ALLEGRO           = /project/omega/lisp/solaris/acl5.0.1/lisp
+
+OMEGA_DUMP_EMACS  = /home/${USER}/omega/omega-3/bin/omega-3-emacs-solaris.dxl
+
+OMEGA_HOME_FASL   = /project/omega/
+#OMEGA_HOME_FASL   = $(OMEGA_HOME)
+
+TEMP_OMEGA_DUMP_EMACS  = /tmp/tmp-omega-3-emacs-solaris-$(USER)
+
+
+

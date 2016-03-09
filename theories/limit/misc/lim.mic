@@ -1,0 +1,444 @@
+(in-package :keim)
+
+#+old(lex~def-pprint-function "PLUS" 2
+			 #'(lambda (&rest l)
+			     (concatenate 'string "$($" (second l) "$+$" (third l)
+					  "$)$")))
+
+(um~def-variable plus umv@function
+  ((arity 2) (priority (verb . 10))
+   (formula "$($" ?1 "$+$" ?2 "$)$")))
+
+#+old(lex~def-pprint-function "MINUS" 2
+			 #'(lambda (&rest l)
+			     (concatenate 'string "$($" (second l) "$-$" (third l)
+					  "$)$")))
+
+(um~def-variable minus umv@function
+  ((arity 2) (priority (verb . 10))
+   (formula "$($" ?1 "$-$" ?2 "$)$")))
+
+#+old(lex~def-pprint-function "TIMES" 2
+			 #'(lambda (&rest l)
+			     (concatenate 'string (second l) (third l))))
+
+(um~def-variable times umv@function
+  ((arity 2) (priority (verb . 10))
+   (formula ?1 ?2)))
+
+#+old(lex~def-pprint-function "DIV" 2
+			 #'(lambda (&rest l)
+			     (concatenate 'string "$\\frac{\\mbox{" (second l)
+					  "}}{\\mbox{" (third l) "}}$"))) 
+(um~def-variable div umv@function
+  ((arity 2) (priority (verb . 10))
+   (formula "$\\frac{\\mbox{" ?1 "}}{\\mbox{" ?2 "}}$")))
+
+#+old(lex~def-pprint-function "LESS" 2
+			 #'(lambda (&rest l)
+			     (concatenate 'string (second l) "$<$" (third l))))
+
+(um~def-variable less umv@predicate
+  ((arity 2) (priority (verb . 10))
+   (formula ?1 "$<$" ?2))
+  ((arity 2) (negated) (priority (verb . 10))
+   (formula ?1 "$\\not <$" ?2)))
+
+
+#+old(lex~def-pprint-function "ABSVAL" 1
+			 #'(lambda (&rest l)
+			     (concatenate 'string "$|$" (second l) "$|$")))
+
+(um~def-variable absval umv@function
+  ((arity 1) (priority (verb . 10))
+   (formula "$|$" ?1 "$|$")))
+
+
+#+old(lex~def-pprint-function "ZERO" 0
+			 #'(lambda (&rest l)
+			     "$0$"))
+
+(um~def-variable zero umv@function
+  ((arity 0) (priority (verb . 10))
+   (formula "$0$")))
+
+
+#+old(lex~def-pprint-function "ONE" 0
+			 #'(lambda (&rest l)
+			     "$1$"))
+
+(um~def-variable one umv@function
+  ((arity 0) (priority (verb . 10))
+   (formula "$1$")))
+
+
+(lex~def-pprint-function "TWO" 0
+			 #'(lambda (&rest l)
+			     "$2$"))
+
+(um~def-variable two umv@function
+  ((arity 0) (priority (verb . 10))
+   (formula "$2$")))
+
+
+;;; Macroplanning operators
+
+;ExistsE-M
+
+(op~def-op 'Assume-Choice-1-M
+	   :condition #'(lambda ()
+			  (let (l1 l2 l3 l4)
+			    (setq l1 (nl~history-plan-task nl*current-history))
+			    (if (and (string= (alx~rule-symbol l1) :ExistsE-M)
+				     (eq (nl~node-status l1) 'unconveyed))
+				(progn
+				  (setq l2 (car (alj~premises l1))) ;Exists-wff
+				  (setq l3 (cadr (alj~premises l1)))
+				  (setq l4 (car (set-difference (pdsn~hyps l3)
+								(pdsn~hyps l1))))
+				  (if (and (eq (nl~node-status l4) 'unconveyed)
+					   (string= (alx~rule-symbol l2) :Hyp))
+				      (list l1 l2 l3 l4)
+				      nil))
+				nil)))
+	   :acts #'(lambda (l1 l2 l3 l4)
+		     (let* ((l2-wff (node~formula l2))
+			    (x (termc~quantification-bound-variable l2-wff))
+			    (a (cdr (assoc x
+					   (alx~match-p (termc~quantification-scope
+							 l2-wff)
+							(node~formula l4)
+							nil (list x))
+					   :test #'term~equal))))
+		       (if (equal (nl~node-status l2) 'unconveyed)
+			   (mapl~call-pca :begin-assume-choice-1
+					 :conclusion (list l2)
+					 :parameters (list x a))
+			   (mapl~call-pca :begin-assume-choice-2
+					  :conclusion (list l4)
+					  :parameters (list x a)))
+		       (if (mapl~plan l3)
+			   (progn
+			     (mapl~call-pca :end-assume-choice
+					   :parameters (list a)
+					   :conclusion (list l1))
+			     t)
+			   nil)))
+	   :features '(top-down compulsory explicit detailed))
+
+(op~def-op 'Choice-Explicit-1-M
+	   :condition #'(lambda ()
+			  (let (l1 l2 l3 l4)
+			    (setq l1 (nl~history-plan-task nl*current-history))
+			    (if (and (string= (alx~rule-symbol l1) :ExistsE-M)
+				     (eq (nl~node-status l1) 'unconveyed))
+				(progn
+				  (setq l2 (car (alj~premises l1))) ;Exists-wff
+				  (setq l3 (cadr (alj~premises l1)))
+				  (setq l4 (car (set-difference (pdsn~hyps l3)
+								(pdsn~hyps l1))))
+				  (if (and (eq (nl~node-status l2) 'unconveyed)
+					   (eq (nl~node-status l3) 'unconveyed)
+					   (eq (nl~node-status l4) 'unconveyed))
+				      (list l1 l2 l3 l4)
+				    nil))
+			      nil)))
+	   :acts #'(lambda (l1 l2 l3 l4)
+		     (let* ((l2-wff (node~formula l2))
+			    (x (termc~quantification-bound-variable l2-wff))
+			    (a (cdr (assoc x
+					   (alx~match-p (termc~quantification-scope
+							 l2-wff)
+							(node~formula l4)
+							nil (list x))
+					   :test #'term~equal))))
+		       (if (mapl~plan l2)
+			   (progn
+			     (mapl~call-pca :begin-assume-choice-1
+					    :conclusion (list l4)
+					    :parameters (list x a))
+			     (if (mapl~plan l3)
+				 (progn
+				   (mapl~call-pca :end-assume-choice-1
+						  :parameters (list a)
+						  :conclusion (list l1))
+				   t)
+			       nil))
+			 nil)))
+	   :features '(top-down compulsory explicit detailed))
+
+; ForallE-M
+
+(op~def-op 'Foralle-Bottom-Up-M
+	   :condition #'(lambda ()
+			  (let* ((conclusion (nl~history-next-node nl*current-history))
+				 (method (if conclusion (node~justification conclusion))))
+			    (if (and conclusion
+				     method
+				     (string= (alx~rule-symbol method) :ForallE*-Meta-M))
+				(list (keim~name (car (alj~premises conclusion)))
+				      conclusion)
+			      nil)))
+	   :acts #'(lambda (method conclusion)
+		     (if (mapl~equation-p (node~formula conclusion))
+			 (mapl~call-pca :equation
+					:conclusion (list conclusion)
+					:method method)
+		       (mapl~call-pca :derive
+				      :conclusion (list conclusion)
+				      :method method))
+		     t)
+	   :features '(bottom-up specific explicit detailed))
+
+
+
+(op~def-op 'Omit-td
+	   :condition #'(lambda ()
+;			  (let ((l1 (nl~history-next-node nl*current-history)))
+			  (let ((l1 (nl~history-plan-task nl*current-history)))
+			    (if (member (alx~rule-symbol l1)
+					'(:UnwrapHyp :RemoveFocus-m
+					  :choice-cs-m	     
+						     ;:ImpE-m
+					  :Solve<B-S :Solve<F-S 
+					  )
+					:test #'string=)
+				(list l1)
+			      nil)))
+	   :acts #'(lambda (l1)		     
+		     (mapl~set-conveyed l1)
+;		     (setf (nl~node-pca l1) (nl~node-pca (car (alj~premises l1))))
+		     (cond ((mapcar #'mapl~plan (alj~premises l1)))
+			   (t)))
+	   :features '(top-down compulsory))
+
+(op~def-op 'Omit-bu
+	   :condition #'(lambda ()
+			  (let ((l1 (nl~history-next-node nl*current-history)))
+;			  (let ((l1 (nl~history-plan-task nl*current-history)))
+			    (if (member (alx~rule-symbol l1)
+					'(:UnwrapHyp :RemoveFocus-m
+					  :choice-cs-m
+						     ;:ImpE-m
+					  :Solve<B-S :Solve<F-S 
+					  )
+					:test #'string=)
+				(list l1)
+			      nil)))
+	   :acts #'(lambda (l1)		     
+		     (mapl~set-conveyed l1)
+		     (setf (nl~node-pca l1) (nl~node-pca (car (alj~premises l1))))
+;		     (cond ((mapcar #'mapl~plan (alj~premises l1)))
+;			   (t))
+		     t)
+	   :features '(bottom-up compulsory))
+
+
+(op~def-op 'Skolemize-M
+	   :condition #'(lambda ()
+			  (let (pre con)
+			    (setq con (nl~history-plan-task nl*current-history))
+			    (if (and (string= (alx~rule-symbol con) :Skolemize-M)
+				     (eq (nl~node-status con) 'unconveyed))
+				(progn (setq pre (car (alj~premises con)))
+				       (list pre con))
+			      nil)))
+	   :acts #'(lambda (pre con)
+		     (let* ((pre-wff (node~formula pre))
+			    (con-wff (node~formula con))
+			    (xs nil)
+			    (as nil))
+		       (do* ((wff con-wff scope)
+			     (scope (termc~quantification-scope wff)
+				    (termc~quantification-scope wff))
+			     (x (termc~quantification-bound-variable wff)
+				(termc~quantification-bound-variable wff))
+			     (a (cdr (assoc x (alx~match-p scope pre-wff nil (list x))
+					    :test #'term~equal))
+				(cdr (assoc x (alx~match-p scope pre-wff nil (list x))
+					    :test #'term~equal))))
+			   ((not (or (termc~universal-quantification-p scope)
+				     (termc~existential-quantification-p scope)))
+			    (progn (push x xs) (push a as)))
+			 (push x xs)
+			 (push a as))
+		       (if (mapl~plan pre)
+			   (progn
+			     (mapl~call-pca :end-assume-choice
+					    :parameters as
+					    :conclusion (list con))
+			     t)
+			   nil)))
+	   :features '(top-down compulsory explicit detailed))
+
+
+
+#+no(op~def-op 'Limit-Solve<B-S
+	   :condition #'(lambda ()
+			  (let ((l1 (nl~history-plan-task nl*current-history)))
+			    (if (string= (alx~rule-symbol l1) :Solve<B-S)
+				(list l1)
+			      nil)))
+	   :acts #'(lambda (l1)		     
+		     (mapl~call-pca :derive :method "hypothesis" :conclusion (list l1))
+		     t)
+	   :features '(top-down compulsory))
+
+(op~def-op 'Limes-Deduction-Top-Down
+	   :condition #'(lambda ()
+			  (let (lns ln lnplusone)
+			    (setq lnplusone (nl~history-plan-task nl*current-history))
+			    (if (string= (alx~rule-symbol lnplusone) :Normal-S)
+				(progn
+				  (setq ln (car (alj~premises lnplusone)))
+				  (setq lns (set-difference (pdsn~hyps ln)
+							    (pdsn~hyps lnplusone)))
+				  (list lns ln lnplusone))
+				nil)))
+	   :acts #'(lambda (lns ln lnplusone)
+		     (mapl~call-pca :assume
+				    :conclusion lns)
+		     (mapl~plan ln)
+		     (mapl~set-conveyed lnplusone)
+		     t)
+	   :features '(top-down compulsory explicit))
+
+(op~def-op 'MP-Top-Down
+	   :condition #'(lambda ()
+			  (let ((conc (nl~history-plan-task nl*current-history)))
+			    (if (string= (alx~rule-symbol conc) :ImpE-m)
+				(let* ((premises (alj~premises conc))
+				       (p1 (car premises))
+				       (p2 (cadr premises)))
+				  (if (termc~implication-p (node~formula p1))
+				      (list p1 p2 conc)
+				    (list p2 p1 conc)))
+			      nil)))
+	   :acts #'(lambda (imp pre conc)
+		     (mapl~plan pre)
+		     (mapl~plan imp)
+		     (mapl~call-pca :derive
+				    :reasons (list imp pre)
+				    :conclusion (list conc))
+		     t)
+	   :features '(top-down compulsory explicit))
+
+
+(op~def-op 'LimHeuristic
+	   :condition #'(lambda ()
+			  (let (l1 l2 l3 l4)
+			    (setq l1 (nl~history-plan-task nl*current-history))
+;			    (setq l1 (nl~history-next-node nl*current-history))
+;			    (break)
+			    (if (string= (alx~rule-symbol l1) :LimHeuristic-M)
+				(progn
+				  (setq l4 (car (alj~premises l1)))
+				  (setq l2 (cadr (alj~premises l1)))
+				  (setq l3 (caddr (alj~premises l1)))
+				  #+old(if (and (equal (nl~node-status l2) 'unconveyed)
+					   (equal (nl~node-status l3) 'unconveyed)
+					   (not (op~complementary-or (node~formula l4))))
+				      (list l1 l2 l3 l4)
+				    nil)
+				  (list l1 l2 l3 l4))
+			      nil)))
+	   :acts #'(lambda (l1 l2 l3 l4)
+		     (mapc #'(lambda (l) (format t "~&~A" l)) (list l1 l2 l3 l4))
+		     (let ((flag t))
+		       (mapl~set-conveyed l1)
+		       (mapl~call-pca :split-goal
+				      :goal
+				      (list (nl~history-plan-task nl*current-history))
+				      :subgoals (list l2 l3 l4))
+		       (if (alj~premises l2)
+			   (mapl~call-pca :first-subgoal :subgoals (list l2)))
+		       (if flag (setq flag (mapl~plan l2)))
+		       (if (alj~premises l3)
+			   (mapl~call-pca :next-subgoal :subgoals (list l3)))
+		       (if flag (setq flag (mapl~plan l3)))
+		       (if (alj~premises l4)
+			   (mapl~call-pca :next-subgoal :subgoals (list l4)))
+		       (if flag (setq flag (mapl~plan l4)))
+		       (mapl~call-pca :end-split)
+		       flag))
+	   :features '(top-down compulsory implicit abstract))
+
+(op~def-op 'LimHeuristic-Bottom-Up
+	   :condition #'(lambda ()
+			  (let (l1 l2 l3 l4)
+;			    (setq l1 (nl~history-plan-task nl*current-history))
+			    (setq l1 (nl~history-next-node nl*current-history))
+;			    (break)
+			    (if (and l1
+				     (string= (alx~rule-symbol l1) :LimHeuristic-M)
+				     (eq (nl~node-status l1) 'unconveyed))
+				(progn
+				  (setq l4 (car (alj~premises l1)))
+				  (setq l2 (cadr (alj~premises l1)))
+				  (setq l3 (caddr (alj~premises l1)))
+				  #+old(if (and (equal (nl~node-status l2) 'unconveyed)
+					   (equal (nl~node-status l3) 'unconveyed)
+					   (not (op~complementary-or (node~formula l4))))
+				      (list l1 l2 l3 l4)
+				    nil)
+				  (list l1 l4 l2 l3))
+			      nil)))
+	   :acts #'(lambda (l1 l2 l3 l4)
+		     (mapc #'(lambda (l) (format t "~&~A" l)) (list l1 l2 l3 l4))
+		     (let ((flag t)
+			   (subgoals (apply #'append
+					    (mapcar #'(lambda (l)
+							(if (eq (nl~node-status l)
+								'unconveyed)
+							    l))
+						    (list l2 l3 l4)))))
+		       (when subgoals
+			 (mapl~call-pca :split-goal
+					:goal
+					(list (nl~history-plan-task nl*current-history))
+					:subgoals subgoals)
+			 (if (< 1 (length subgoals))
+			     (let ((s1 (car subgoals)))
+			       (mapl~call-pca :first-subgoal :subgoals (list s1))
+			       (if flag (setq flag (mapl~plan s1)))
+			       (dolist (sub (cdr subgoals))
+				 (mapl~call-pca :next-subgoal :subgoals (list sub))
+				 (if flag (setq flag (mapl~plan sub)))))
+			   (if flag (setq flag (mapl~plan (car subgoals)))))) 
+		       (mapl~call-pca :derive :reason (list l2 l3 l4)
+				      :conclusion (list l1))
+		       (when subgoals
+			 (mapl~call-pca :end-split))
+		       flag))
+	   :features '(bottom-up compulsory implicit abstract))
+
+(op~def-op 'Limes-Derive-Bottom-Up
+	   :condition #'(lambda ()
+			  (let ((conclusion (nl~history-next-node nl*current-history)))
+			    (if (and conclusion ;when there is a next node
+				     (member (alj~method conclusion)
+					     '(:Solve*-s :Solve<B-s)
+					     :test #'string=))
+				(list (alj~premises conclusion) conclusion)
+			      nil)))
+	   :acts #'(lambda (reasons conclusion)
+		     (if (mapl~equation-p (node~formula conclusion))
+			 (mapl~call-pca :equation
+					:reasons reasons
+					:conclusion (list conclusion)
+					:method "hypothesis")
+		       (mapl~call-pca :derive
+				      :reasons reasons
+				      :conclusion (list conclusion)
+				      :method "hypothesis"))
+		     t)
+	   :features '(bottom-up specific explicit detailed))
+
+
+(um~def-variable hypothesis umv@concept
+  ((arity 0) (priority (verb . 10))
+   (um 'um@object :object (lex 'hypothesis))))
+
+(lex~def-entry hypothesis
+  ((class name)
+   (verbalizations ("hypothesis" 1))))

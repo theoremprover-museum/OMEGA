@@ -1,0 +1,741 @@
+<?xml version="1.0"?>
+<!DOCTYPE omdoc SYSTEM "/home/kohlhase/omega/openmath/dtd/omdoc.dtd" []>
+
+<omdoc Ident="generic.thy.tactics">
+<metadata>
+  <dc:Creator role="aut">The OMEGA GROUP</dc:Creator>
+  <dc:Title>The tactics of the theory GENERIC</dc:Title>
+</metadata>
+
+<private Ident="DefsE.tac"
+         pto="OMEGA"
+         format="LISP"
+         theory="generic.thy"
+         requires="gentac.expand-defse.lisp
+                   gentac.substitute-definitions.lisp
+                   gentac.substituted-differs-p.lisp"
+         type="tactic">
+<metadata>
+  <dc:Creator role="aut">Volker Sorge</dc:Creator>
+  <dc:Title>The tactic DefsE</dc:Title>
+</metadata>
+<CMP>
+  Elimination of Multiple Definition Occurrences
+</CMP>
+<data>
+(infer~deftactic "DefsE"
+		 (outline-mappings (((nonexistent existent) defse-f)
+                                    ((existent existent) defse-a)))
+		 (parameter-types thy-ass-list)
+		 (expansion-function gentac=expand-defse)
+		 (help "Elimination of Multiple Definition Occurrences"))
+
+(tac~deftactic defse-f DefsE (in generic)
+   (parameters (DL list "the list of definitions"))
+   (premises L1)
+   (conclusions L2)
+   (computations (L2 (gentac=substitute-definitions (formula L1) DL)))
+   (sideconditions (gentac=substituted-differs-p (formula L1) DL))
+   (description "Forward application of definition elemination."))
+
+(tac~deftactic defse-a DefsE (in generic)
+   (parameters (DL list "the list of definitions"))
+   (premises (L1 "a term with defined symbols"))
+   (conclusions (L2 "a term with all definitions removed"))
+   (computations) 
+   (sideconditions (gentac=substituted-definitions-p (formula L2) (formula L1) DL))
+   (description "Check definition expansion."))
+</data>
+</private>
+
+<private Ident="defse.com"
+         pto="OMEGA"
+         format="LISP"
+         theory="generic.thy"
+         requires="gentac.defse.lisp
+                   gentac.defse-defaults.lisp"
+         type="command">
+<metadata>
+  <dc:Creator role="aut">Volker Sorge</dc:Creator>
+  <dc:Title>The defse command</dc:Title>
+</metadata>
+<CMP>
+  Elimination of Multiple Definition Occurrences
+</CMP>
+<data>
+(com~defcommand defse
+  (argnames concl line2 defs)
+  (argtypes ndline ndline thy-ass-list)
+  (arghelps  "Line with expanded definitions" "Line with defined utterances" "List with prohibited Definitions")
+  (function gentac=defse)
+  (frag-cats tactics generic)
+  (defaults gentac=defse-defaults)
+  (log-p T)
+  (level 5)
+  (help "Eleminates defined expressions."))
+</data>
+</private>
+
+<private Ident="gentac.defse-defaults.lisp"
+         pto="OMEGA"
+         format="LISP"
+         theory="generic.thy"
+         type="defun">
+<metadata>
+  <dc:Creator role="aut">Volker Sorge</dc:Creator>
+  <dc:Title>The defaults of the tactic DefsE</dc:Title>
+</metadata>
+<data>
+(defun gentac=defse-defaults (conc prec defs)
+  (cond ((not (com~specified-arg-p conc))
+	 (list (pds~find-open-node
+		#'(lambda (p) (not (orules=contained-definition p))))
+	       prec defs))
+	((not (com~specified-arg-p prec))
+	 (if (or (null conc)
+		 (when (listp conc) (null (car conc))))
+           (list conc 
+                 (pds~find-node-support
+                  conc
+                  #'(lambda (p) (orules=contained-definition p))
+		 defs))
+	   (list conc nil nil)))
+	((not (com~specified-arg-p defs))
+	 (list conc prec (list (th~find-assumption '= (prob~theory omega*current-proof-plan)))))
+	(t (list conc prec defs))))
+</data>
+</private>
+
+
+<private Ident="gentac.defse.lisp"
+         pto="OMEGA"
+         format="LISP"
+theory="generic.thy"         type="defun">
+<metadata>
+  <dc:Creator role="aut">Volker Sorge</dc:Creator>
+  <dc:Title>The defaults of the tactic DefsE</dc:Title>
+</metadata>
+<data>
+(defun gentac=defse (concl line2 defs)
+  (infer~compute-outline 'defse (list concl line2) (list defs)))
+</data>
+</private>
+
+<private Ident="gentac.expand-defse.lisp"
+         pto="OMEGA"
+         format="LISP"
+         theory="generic.thy"
+         requires="gentac.substitute-definitions.lisp
+                   gentac.get-defsymb.lisp"
+         type="defun">
+<metadata>
+  <dc:Creator role="aut">Volker Sorge</dc:Creator>
+  <dc:Title>The defaults of the tactic DefsE</dc:Title>
+</metadata>
+<data>
+(defun gentac=expand-defse (outline parameters)
+  (let ((conc (first outline))
+	(prec-line (cdr outline))
+	(prec (second outline))
+	(defs (first parameters)))
+    (multiple-value-bind
+	(conc-eq tlist) (gentac=substitute-definitions (node~formula prec) defs)
+      (declare (ignore conq-eq))
+      (tacl~init outline)
+      (let ((defsymbols (mapcar #'gentac=get-defsymb tlist)))
+	(do* ((restlist defsymbols (cdr restlist))
+	      (defsymb (car restlist) (car restlist)))
+	    ((null restlist) (tacl~apply 'lambda (list conc (car prec-line)) nil))
+	  (let* ((def (th~find-assumption defsymb (prob~theory omega*current-proof-plan)))
+		 (definiendum (th~definition-constant def))
+		 (definiens (data~copy (th~ass-node def) :downto '(term+constant
+								   type+primitive)))
+		 (poslist (data~substruct-positions definiendum (node~formula (car prec-line))
+						    :test #'data~schema-equal)))
+	    (when poslist
+	      (setf prec-line
+		    (tacl~apply 'defne* (list nil (car prec-line)) (list definiendum
+									 definiens poslist)))))))
+      (tacl~end))))
+</data>
+</private>
+
+<private Ident="gentac.get-defsymb.lisp"
+         pto="OMEGA"
+         format="LISP"
+theory="generic.thy"         type="defun">
+<metadata>
+  <dc:Creator role="aut">Volker Sorge</dc:Creator>
+  <dc:Title>The defaults of the tactic DefsE</dc:Title>
+</metadata>
+<data>
+(defun gentac=get-defsymb (pair)
+  (keim~name (car pair)))
+</data>
+</private>
+
+<private Ident="gentac.substitute-definitions.lisp"
+         pto="OMEGA"
+         format="LISP"
+theory="generic.thy"         type="defun">
+<metadata>
+  <dc:Creator role="aut">Volker Sorge</dc:Creator>
+  <dc:Title>The defaults of the tactic DefsE</dc:Title>
+</metadata>
+<data>
+(defun gentac=substitute-definitions (f prohibited)
+  (let* ((defs (set-difference
+		(th~definitions-recursed
+		 (prob~theory omega*current-proof-plan))
+		prohibited)))
+    (multiple-value-bind (fnew positions)
+        (rewrite~preorder
+         f
+         ;; predicates
+         (mapcar #'(lambda (x)
+                     #'(lambda (term)
+                         (when (data~constant-p term)
+                           (let* ((look-pre
+				        (env~lookup-object
+                                        (keim~name x)
+                                        (pds~environment
+                                         omega*current-proof-plan)))
+				 (look (if (data~schema-p look-pre)
+					   (data~schema-range look-pre)
+					 look-pre)))
+                             (and (data~constant-p look)
+                                  (keim~equal look term))))))
+                 defs)
+         ;; names (we use definitions themselves)
+         defs
+         ;; transformations
+         (mapcar #'(lambda (x)
+                     #'(lambda (term)
+                         (let* ((look-pre (th~ass-node x))
+				(look (pds~ground-definiens look-pre term)))
+                           look)))
+                 defs))
+    (values (beta~normalize fnew) positions))))
+</data>
+</private>
+
+
+<private Ident="gentac.substituted-differs-p.lisp"
+         pto="OMEGA"
+         format="LISP"
+         theory="generic.thy"
+         requires="gentac.substitute-definitions"
+         type="defun">
+<metadata>
+  <dc:Creator role="aut">Volker Sorge</dc:Creator>
+  <dc:Title>The defaults of the tactic DefsE</dc:Title>
+</metadata>
+<data>
+(defun gentac=substituted-differs-p (formula def-list)
+  (not (keim~equal formula (gentac=substitute-definitions formula def-list))))
+</data>
+</private>
+
+
+<private Ident="DefsI.tac"
+         pto="OMEGA"
+         format="LISP"
+         theory="generic.thy"
+         requires="gentac.expand-defsi
+                   gentac.substitute-definitions
+                   gentac.substituted-definitions
+                   gentac.substituted-differ-p"
+         type="tactic">
+<metadata>
+  <dc:Creator role="aut">Volker Sorge</dc:Creator>
+  <dc:Title>The defaults of the tactic DefsE</dc:Title>
+</metadata>
+<data>
+(infer~deftactic "DefsI"
+		 (outline-mappings (((existent nonexistent) defsi-b)
+                                    ((existent existent) defsi-a)))
+		 (parameter-types thy-ass-list)
+		 (expansion-function gentac=expand-defsi)
+		 (help "Elemination of Multiple Definitions"))
+(tac~deftactic defsi-b DefsI (in generic)
+   (parameters (DL list "the list of definitions"))
+   (premises L2)
+   (conclusions L1)
+   (computations (L2 (gentac=substitute-definitions (formula L1) DL)))
+   (sideconditions (gentac=substituted-differs-p (formula L1) DL))
+   (description "Backward application of definition introduction."))
+
+(tac~deftactic defsi-a DefsI (in generic)
+   (parameters (DL list "the list of definitions"))
+   (premises (L2 "a term with defined symbols"))
+   (conclusions (L1 "a term with all definitions removed"))
+   (computations) 
+   (sideconditions (gentac=substituted-definitions-p (formula L2) (formula L1) DL))
+   (description "Check definition expansion."))
+</data>
+</private>
+
+
+<private Ident="gentac.expand-defsi.lisp"
+         pto="OMEGA"
+         format="LISP"
+         theory="generic.thy"
+         requires="gentac.substitute-definitions
+                   gentac.get-defsymb"
+         type="defun">
+<metadata>
+  <dc:Creator role="aut">Volker Sorge</dc:Creator>
+  <dc:Title>The defaults of the tactic DefsE</dc:Title>
+</metadata>
+<data>
+(defun gentac=expand-defsi (outline parameters)
+  (let* ((conc (first outline))
+	 (conc-line (list nil conc))
+	 (prec (second outline))
+	 (defs (first parameters)))
+    (multiple-value-bind
+	(prec-eq tlist) (gentac=substitute-definitions (node~formula conc) defs)
+      (declare (ignore prec-eq))
+      (tacl~init outline)
+      (let ((defsymbols (remove-duplicates (mapcar #'gentac=get-defsymb tlist))))
+	(do* ((restlist defsymbols (cdr restlist))
+	      (defsymb (car restlist) (car restlist)))
+	    ((null restlist) (tacl~apply 'lambda (list (cadr conc-line) prec) nil))
+	  (let* ((def (th~find-assumption defsymb (prob~theory omega*current-proof-plan)))
+		 (definiendum (th~definition-constant def))
+		 (definiens (data~copy (th~ass-node def) :downto '(term+constant
+								   type+primitive)))
+		 (poslist (data~substruct-positions definiendum (node~formula (cadr conc-line))
+						    :test #'data~schema-equal)))
+	    (when poslist
+	      (setf conc-line
+		    (tacl~apply 'defni* (list (cadr conc-line) nil) (list definiendum
+									  definiens poslist)))))))
+      (tacl~end))))
+</data>
+</private>
+
+<private Ident="defsi.com"
+         pto="OMEGA"
+         format="LISP"
+         theory="generic.thy"
+         requires="gentac.defsi
+                   gentac.defsi-defaults"
+         type="command">
+<metadata>
+  <dc:Creator role="aut">Volker Sorge</dc:Creator>
+  <dc:Title>The defaults of the tactic DefsE</dc:Title>
+</metadata>
+<data>
+(com~defcommand defsi
+  (argnames concl line2 defs)
+  (argtypes ndline ndline thy-ass-list)
+  (arghelps  "Line with definited symbols" "Line with removed definitions" "List of
+prohibited Definitions")
+  (function gentac=defsi)
+  (frag-cats tactics generic)
+  (defaults gentac=defsi-defaults)
+  (log-p T)
+  (level 5)
+  (help "Eleminates defined expressions."))
+</data>
+</private>
+
+<private Ident="gentac.defsi-defaults.lisp"
+         pto="OMEGA"
+         format="LISP"
+         theory="generic.thy"
+         type="defun">
+<metadata>
+  <dc:Creator role="aut">Volker Sorge</dc:Creator>
+  <dc:Title>The defaults of the tactic DefsE</dc:Title>
+</metadata>
+<data>
+(defun gentac=defsi-defaults (conc prec defs)
+  (cond ((not (com~specified-arg-p conc))
+	 (list (oc~default-current-planline) prec defs))
+	((not (com~specified-arg-p prec))
+         (if (null conc)
+	     (list conc nil nil)
+           (list conc 
+                 (pds~find-node-support
+                  conc
+                  #'(lambda (p) (not (orules=contained-definition p))))
+		 defs)))
+	((not (com~specified-arg-p defs))
+	 (list conc prec (list (th~find-assumption '= (prob~theory omega*current-proof-plan)))))
+	(t (list conc prec defs))))
+</data>
+</private>
+
+<private Ident="gentac.defsi.lisp"
+         pto="OMEGA"
+         format="LISP"
+         theory="generic.thy"
+         type="defun">
+<metadata>
+  <dc:Creator role="aut">Volker Sorge</dc:Creator>
+  <dc:Title>The defaults of the tactic DefsE</dc:Title>
+</metadata>
+<data>
+(defun gentac=defsi (concl line2 defs)
+  (infer~compute-outline 'defsi (list concl line2) (list defs)))
+</data>
+</private>
+
+<private Ident="defnestar.tac"
+         pto="OMEGA"
+         format="LISP"
+         theory="generic.thy"
+         requires="gentac.compute-iterated-defne.lisp
+                   gentac.expand-defnestar.lisp
+                   gentac.defnestar-a-p.lisp"
+         type="tactic">
+<metadata>
+  <dc:Creator role="aut">Volker Sorge</dc:Creator>
+  <dc:Title>The defaults of the tactic DefsE</dc:Title>
+</metadata>
+<data>
+(infer~deftactic defne*
+		 (outline-mappings (((existent existent) defne*-a)
+                                    ((nonexistent existent) defne*-f)
+				    ))
+		 (parameter-types term term position-list)
+		 (expansion-function gentac=expand-defne*)
+		 (help "Iterated Definition-Expansion."))
+
+
+(tac~deftactic defne*-a defne* (in generic)
+  (parameters (D term+term "the definiendum")
+	      (B term+term "the definiens")
+	      (PL list "the position list"))
+  (premises L1)
+  (conclusions L2)
+  (computations)
+  (sideconditions (gentac=defne*-a-p (formula L1) (formula L2) D B PL))
+  (description "checking multiple definition expansion"))
+
+(tac~deftactic defne*-f defne* (in generic)
+  (parameters (D term+term "the definiendum")
+	      (B term+term "the definiens")
+	      (PL list "the position list"))
+  (premises L1)
+  (conclusions L2)
+  (computations (L2 (gentac=compute-iterated-defne (formula L1) D B PL)))
+  (description "forward application of  multiple definition expansion"))
+</data>
+</private>
+
+
+<private Ident="gentac.defnestar-a-p.lisp"
+         pto="OMEGA"
+         format="LISP"
+         theory="generic.thy"
+         requires="gentac.compute-iterated-defne.lisp"
+         type="defun">
+<metadata>
+  <dc:Creator role="aut">Volker Sorge</dc:Creator>
+  <dc:Title>The defaults of the tactic DefsE</dc:Title>
+</metadata>
+<data>
+(defun gentac=defne*-a-p (form1 form2 dd ds pl)
+  (data~equal (gentac=compute-iterated-defne form1 dd ds pl) form2))
+</data>
+</private>
+
+<private Ident="gentac.compute-iterated-defne.lisp"
+         pto="OMEGA"
+         format="LISP"
+         theory="generic.thy"
+         type="defun">
+<metadata>
+  <dc:Creator role="aut">Volker Sorge</dc:Creator>
+  <dc:Title>The defaults of the tactic DefsE</dc:Title>
+</metadata>
+<data>
+(defun gentac=compute-iterated-defne (formula dd ds poslist)
+  (let ((new-form formula))
+    (dolist (x poslist)
+	(setq new-form (pds~replace-without-contract-at-position
+			dd
+			ds
+			new-form
+			x)))
+	(beta~normalize new-form)
+      ))
+</data>
+</private>
+
+<private Ident="gentac.expand-defnestar.lisp"
+         pto="OMEGA"
+         format="LISP"
+         theory="generic.thy"
+         requires="gentac.sort-position-list.lisp"
+         type="defun">
+<metadata>
+  <dc:Creator role="aut">Volker Sorge</dc:Creator>
+  <dc:Title>The defaults of the tactic DefsE</dc:Title>
+</metadata>
+<data>
+(defun gentac=expand-defne* (outline parameters) ;irgendwas stimmt da noch nicht. DEF
+  (let ((L1 (second outline))
+	(L2 (first outline))
+	(definiendum (first parameters))
+	(definiens (second parameters))
+        (poslist (gentac=sort-position-list (third parameters))))
+    (tacl~init outline)
+    (do ((rest poslist (cdr rest)))
+	((null rest) T)
+      (when rest
+	(setf L1
+	      (car (if (null (rest rest))
+		       (tacl~apply 'defne (list L2 L1) (list definiendum definiens (car rest)))
+		     (tacl~apply 'defne (list nil L1) (list definiendum definiens (car rest))))))))
+    (tacl~end)))
+</data>
+</private>
+
+<private Ident="defn-expandstar.com"
+         pto="OMEGA"
+         format="LISP"
+         theory="generic.thy"
+         requires="gentac.defn-expandstar.lisp
+                   gentac.defn-expandstar-defaults.lisp"
+         type="command">
+<metadata>
+  <dc:Creator role="aut">Volker Sorge</dc:Creator>
+  <dc:Title>The defaults of the tactic DefsE</dc:Title>
+</metadata>
+<data>
+(com~defcommand defn-expand*
+  (argnames line definition position-list)
+  (argtypes ndline thy-assumption position-list)
+  (arghelps "Line to be rewritten" "Definition to be expanded" "Positions of occurrences")
+  (function gentac=defn-expand*)
+  (frag-cats tactics generic)
+  (defaults gentac=defn-expand*-defaults)
+  (log-p T)
+  (level 5)
+  (help "Expand multiple definition occurrences in a line."))
+</data>
+</private>
+
+
+<private Ident="gentac.defn-expandstar-defaults.lisp"
+         pto="OMEGA"
+         format="LISP"
+         theory="generic.thy"
+         requires="gentac.sort-position-list.lisp"
+         type="defun">
+<metadata>
+  <dc:Creator role="aut">Volker Sorge</dc:Creator>
+  <dc:Title>The defaults of the tactic defn-expand*</dc:Title>
+</metadata>
+<data>
+(defun gentac=defn-expand*-defaults (line definition position-list)
+  (cond ((not (com~specified-arg-p line))
+	 (list (com~unspecified) (com~unspecified) (com~unspecified)))
+	((not (com~specified-arg-p definition))
+	 (list line (com~unspecified) (com~unspecified)))
+	((not (com~specified-arg-p position-list))
+	 (let ((definiendum (th~definition-constant definition)))
+	   (list line definition (gentac=sort-position-list (data~positions (node~formula line) #'(lambda (x) (data~schema-equal x definiendum)))))))
+	(T (list line definition (gentac=sort-position-list position-list)))))
+</data>
+</private>
+
+
+<private Ident="gentac.defn-expandstar.lisp"
+         pto="OMEGA"
+         format="LISP"
+         theory="generic.thy"
+         requires="gentac.sort-position-list.lisp"
+         type="defun">
+<metadata>
+  <dc:Creator role="aut">Volker Sorge</dc:Creator>
+  <dc:Title>The expansion-function of the tactic defn-expand*</dc:Title>
+</metadata>
+<data>
+(defun gentac=defn-expand* (line definition positions)
+  (if (th~definition-p definition)
+      (let ((definiendum (th~definition-constant definition))
+	    (definiens (th~ass-node definition)))
+	(if (every #'(lambda (x) (data~schema-equal (data~struct-at-position (node~formula line) x) definiendum))
+		   positions)
+	    (infer~compute-outline 'defne* (list nil line) (list definiendum definiens (gentac=sort-position-list positions)))
+	  (error "~A does not appear at one of the positions given" definiendum)))
+    (error "~A is not a definition" (keim~name definition))))
+</data>
+</private>
+
+<private Ident="defnistar.tac"
+         pto="OMEGA"
+         format="LISP"
+         theory="generic.thy"
+         requires="gentac.expand-defnistar.lisp
+                   gentac.defnestar-a-p.lisp
+                   gentac.compute-iterated-defne.lisp"
+         type="tactic">
+<metadata>
+  <dc:Creator role="aut">Volker Sorge</dc:Creator>
+  <dc:Title>The defaults of the tactic DefsE</dc:Title>
+</metadata>
+<data>
+(infer~deftactic "defni*"
+               (outline-mappings (((existent existent) defni*-a)
+				  ((existent nonexistent) defni*-b)))
+	       (parameter-types term term position-list)
+	       (expansion-function gentac=expand-defni*)
+               (help "Iterated Definition Expansion"))
+
+
+(tac~deftactic defni*-a defni* (in generic)
+  (parameters (D term+term "the definiendum")
+	      (B term+term "the definiens")
+	      (PL list "the position list"))
+  (premises L1)
+  (conclusions L2)
+  (computations)
+  (sideconditions (gentac=defne*-a-p (formula L2) (formula L1) D B PL))
+  (description "checking multiple definition contraction"))
+
+
+(tac~deftactic defni*-b defni* (in generic)
+  (parameters (D term+term "the definiendum")
+	      (B term+term "the definiens")
+	      (PL list "the position list"))
+  (premises L1)
+  (conclusions L2)
+  (computations (L1 (gentac=compute-iterated-defne (formula L2) D B PL)))
+  (description "backward application of  multiple definition contraction"))
+</data>
+</private>
+
+
+<private Ident="defn-contractstar.lisp"
+         pto="OMEGA"
+         format="LISP"
+         theory="generic.thy"
+         requires="gentac.defn-contractstar.lisp
+                   gentac.defn-contractstar-defaults.lisp"
+         type="command">
+<metadata>
+  <dc:Creator role="aut">Volker Sorge</dc:Creator>
+  <dc:Title>The defaults of the tactic DefsE</dc:Title>
+</metadata>
+<data>
+(com~defcommand defn-contract*
+  (argnames line definition position-list)
+  (argtypes ndline thy-assumption position-list)
+  (arghelps "Line to be rewritten" "Definition to be contracted" "Positions of occurrences")
+  (function gentac=defn-contract*)
+  (frag-cats tactics generic)
+  (defaults gentac=defn-contract*-defaults)
+  (log-p T)
+  (level 5)
+  (help "Contract multiple definition occurrences in a line."))
+</data>
+</private>
+
+
+<private Ident="gentac.defn-contractstar-defaults.lisp"
+         pto="OMEGA"
+         format="LISP"
+         theory="generic.thy"
+         requires="gentac.sort-position-list.lisp"
+         type="defun">
+<metadata>
+  <dc:Creator role="aut">Volker Sorge</dc:Creator>
+  <dc:Title>The defaults of the tactic DefsE</dc:Title>
+</metadata>
+<data>
+(defun gentac=defn-contract*-defaults (line definition position-list)
+  (cond ((not (com~specified-arg-p line))
+	 (list (oc~default-current-planline) (com~unspecified) (com~unspecified)))
+	((not (com~specified-arg-p definition))
+	 (list line (com~unspecified) (com~unspecified)))
+	((not (com~specified-arg-p position-list))
+	 (let ((definiendum (th~definition-constant definition)))
+	   (list line definition (gentac=sort-position-list (data~positions (node~formula line) #'(lambda (x) (data~schema-equal x definiendum)))))))
+	(T (list line definition (gentac=sort-position-list position-list)))))
+</data>
+</private>
+
+<private Ident="gentac.defn-contractstar.lisp"
+         pto="OMEGA"
+         format="LISP"
+         theory="generic.thy"
+         requires="gentac.sort-position-list.lisp"
+         type="defun">
+<metadata>
+  <dc:Creator role="aut">Volker Sorge</dc:Creator>
+  <dc:Title>The defaults of the tactic DefsE</dc:Title>
+</metadata>
+<data>
+(defun gentac=defn-contract* (line definition positions)
+  (if (th~definition-p definition)
+      (let ((definiendum (th~definition-constant definition))
+	    (definiens (th~ass-node definition)))
+	(if (every #'(lambda (x) (data~schema-equal (data~struct-at-position (node~formula line) x) definiendum))
+		   positions)
+	    (infer~compute-outline 'defni* (list line nil) (list definiendum definiens (gentac=sort-position-list positions)))
+	  (error "~A does not appear at one of the positions given" definiendum)))
+    (error "~A is not a definition" (keim~name definition))))
+</data>
+</private>
+
+<private Ident="gentac.expand-defnistar.lisp"
+         pto="OMEGA"
+         format="LISP"
+         theory="generic.thy"
+         requires="gentac.sort-position-list.lisp"
+         type="defun">
+<metadata>
+  <dc:Creator role="aut">Volker Sorge</dc:Creator>
+  <dc:Title>The defaults of the tactic DefsE</dc:Title>
+</metadata>
+<data>
+(defun gentac=expand-defni* (outline parameters) ;irgendwas stimmt da noch nicht. DEF
+  (let ((exp (second outline))
+	(unexp (first outline))
+	(definiendum (first parameters))
+	(definiens (second parameters))
+        (poslist (gentac=sort-position-list (third parameters))))
+    (tacl~init outline)
+    (do ((rest poslist (cdr rest)))
+	((null rest) T)
+      (when rest
+	(setf unexp
+	      (cadr (if (null (rest rest))
+			(tacl~apply 'defni (list unexp exp) (list definiendum definiens (car rest)))
+		      (tacl~apply 'defni (list unexp nil) (list definiendum definiens (car rest))))))))
+    (tacl~end)))
+</data>
+</private>
+
+<private Ident="gentac.sort-position-list.lisp"
+         pto="OMEGA"
+         format="LISP"
+         theory="generic.thy"
+         type="defun">
+<metadata>
+  <dc:Creator role="aut">Volker Sorge</dc:Creator>
+  <dc:Title>The defaults of the tactic DefsE</dc:Title>
+</metadata>
+<data>
+(defun gentac=sort-position-list (poslist)
+  (labels ((list-greater (xl yl)
+			 (cond ((null xl) nil)
+			       ((null yl) t)
+			       ((&gt; (car xl) (car yl)) t)
+			       ((&lt; (car xl) (car yl)) nil)
+			       (t (list-greater (cdr xl) (cdr yl))))))
+    (stable-sort (copy-list poslist)
+		 #'(lambda (x y)
+		     (let ((xp (pos~number-list x))
+			   (yp (pos~number-list y)))
+		       (or (> (length xp) (length yp))
+			   (list-greater xp yp)))))))
+</data>
+</private>
+</omdoc>

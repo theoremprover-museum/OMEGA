@@ -1,0 +1,8 @@
+PLANNING SteP-plan-with (EQUIVI-M-B) (THM) (NIL) (NIL)
+no-gui CN (L2)
+no-gui NSP (9)
+PLANNING SteP-plan-with (SIMPLIFY-M-F) (NIL) ((L24)) (NIL)
+no-gui NSP (8)
+no-gui oN (L2)
+planning step-plan-with (tellcs-m-b) (l19)(nil)(nil)
+analogy solve-analogous-to-node (l1) (l2)

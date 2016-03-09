@@ -1,0 +1,103 @@
+(in-package :keim)
+
+(lex~def-entry wolf
+  ((class noun)
+   (verbalizations ("wolf" 1))))
+
+(um~def-variable wolf umv@predicate
+  ((arity 0) (priority (verb . 10))
+   (um 'um@object :object (lex 'wolf)))
+  ((arity 1) (priority (verb . 10))
+   (um 'um@class-ascription :attribuend ?1 :attribute (umv 'umv@wolf))))
+
+(lex~def-entry fox
+  ((class noun)
+   (verbalizations ("fox" 1))))
+
+(um~def-variable fox umv@predicate
+  ((arity 0) (priority (verb . 10))
+   (um 'um@object :object (lex 'fox)))
+  ((arity 1) (priority (verb . 10))
+   (um 'um@class-ascription :attribuend ?1 :attribute (umv 'umv@fox))))
+
+(lex~def-entry bird
+  ((class noun)
+   (verbalizations ("bird" 1))))
+
+(um~def-variable bird umv@predicate
+  ((arity 0) (priority (verb . 10))
+   (um 'um@object :object (lex 'bird)))
+  ((arity 1) (priority (verb . 10))
+   (um 'um@class-ascription :attribuend ?1 :attribute (umv 'umv@bird))))
+
+(lex~def-entry caterpillar
+  ((class noun)
+   (verbalizations ("caterpillar" 1))))
+
+(um~def-variable caterpillar umv@predicate
+  ((arity 0) (priority (verb . 10))
+   (um 'um@object :object (lex 'caterpillar)))
+  ((arity 1) (priority (verb . 10))
+   (um 'um@class-ascription :attribuend ?1 :attribute (umv 'umv@caterpillar))))
+
+(lex~def-entry snail
+  ((class noun)
+   (verbalizations ("snail" 1))))
+
+(um~def-variable snail umv@predicate
+  ((arity 0) (priority (verb . 10))
+   (um 'um@object :object (lex 'snail)))
+  ((arity 1) (priority (verb . 10))
+   (um 'um@class-ascription :attribuend ?1 :attribute (umv 'umv@snail))))
+
+(lex~def-entry animal
+  ((class noun)
+   (verbalizations ("animal" 1))))
+
+(um~def-variable animal umv@predicate
+  ((arity 0) (priority (verb . 10))
+   (um 'um@object :object (lex 'animal)))
+  ((arity 1) (priority (verb . 10))
+   (um 'um@class-ascription :attribuend ?1 :attribute (umv 'umv@animal))))
+
+(lex~def-entry grain
+  ((class noun)
+   (verbalizations ("grain" 1))))
+
+(um~def-variable grain umv@predicate
+  ((arity 0) (priority (verb . 10))
+   (um 'um@object :object (lex 'grain)))
+  ((arity 1) (priority (verb . 10))
+   (um 'um@class-ascription :attribuend ?1 :attribute (umv 'umv@grain))))
+
+(lex~def-entry plant
+  ((class noun)
+   (verbalizations ("plant" 1))))
+
+(um~def-variable plant umv@predicate
+  ((arity 0) (priority (verb . 10))
+   (um 'um@object :object (lex 'plant)))
+  ((arity 1) (priority (verb . 10))
+   (um 'um@class-ascription :attribuend ?1 :attribute (umv 'umv@plant))))
+
+
+
+(lex~def-entry eat
+  ((class verb)
+   (verbalizations ("eat" 1))))
+
+(um~def-variable eats umv@predicate
+  ((arity 2) (priority (verb . 10))
+   (um 'um@process-relation :process (lex 'eat) :domain ?1 :range ?2)))
+
+(pr2tag~role-translation "eat" (:domain . :agent) (:range . :patient))
+
+
+
+(lex~def-entry small
+ ((class adjective)
+  (verbalizations ("small" 1))))
+
+(um~def-variable smaller umv@predicate
+  ((arity 2) (priority (verb . 10))
+   (um 'um@scaled-comparision :attribute (lex 'small) :attribuend ?1 :comparand ?2)))

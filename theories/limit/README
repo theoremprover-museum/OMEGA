@@ -1,0 +1,26 @@
+The limit domain contains the domain knowledge that is necessary to plan proofs for 
+limit-theorems such as LIM+, LIM*, composite, continuousDerv, limSquare. 
+These proofs require to prove linear inequalities with terms that may contain
+the absolute value function either directly or by introducing auxiliary variables.
+See Seki Report SR-97-08 for a detailed description.
+(The lim-times-wrong problem is an errornous problem to test wether a plan is
+found nevertheless)
+
+The limit domain contains the following knowledge:
+methods
+control-rules 
+a constraint solver for linear inequalities (LINEQ)
+
+Some other files contain functions that are necessary, e.g., for the control-rules.
+
+Limit theorems can be planned for in OMEGA by using the following commands:
+ reset-planning-state
+ read-problem "xxx"
+ require-complete-theory limit
+ call-planner(same-m-b solve=backward SOLVE<-S-F SOLVE<-S-B 
+SOLVE*-S-B limheuristic-m-b NORMAL-S-B UNWRAPHYP-S-F impe-m-b removefocus-m-f)
+
+Unfortunately, this last command still requires to provide AT LEAST the needed methods. 
+This is due to the planner's state-of-progress.
+
+Please report bugs to melis@ags.uni-sb.de

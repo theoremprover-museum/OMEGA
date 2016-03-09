@@ -1,0 +1,73 @@
+(th~defproblem nd-rips-test1
+	 (in nd-rips)
+	 (constants (a o) (b o) (c o))
+	 (assumption A1 (IMPLIES (OR a b) c))
+	 (assumption A2 a)
+	 (assumption A3 b)
+	 (assumption A4 (OR a c))
+	 (assumption A5 (NOT a))
+	 (assumption A6 (OR c b))
+	 (assumption A7 (NOT b))
+	 (conclusion T c))
+
+(th~defproblem nd-rips-test2
+	 (in nd-rips)
+	 (constants (a o) (b o) (c o))
+	 (assumption A1 (IMPLIES (AND a b) c))
+	 (assumption A2 a)
+	 (assumption A3 b)
+	 (assumption A4 (OR a c))
+	 (assumption A5 (NOT a))
+	 (assumption A6 (OR c b))
+	 (assumption A7 (NOT b))
+	 (conclusion T c))
+
+(th~defproblem nd-rips-test-demorgan
+	 (in nd-rips)
+	 (constants (a o) (b o) (c o))
+	 (assumption A1 (NOT (AND a b)))
+	 (assumption A2 a)
+	 (assumption A3 b)
+	 (assumption A4 (OR (NOT a) (NOT b)))
+	 (assumption A5 (NOT a))
+	 (assumption A6 (OR c b))
+	 (assumption A7 (NOT b))
+	 (conclusion T (OR (NOT a) (NOT b))))
+
+(th~defproblem nd-rips-test-demorgan-2
+	 (in nd-rips)
+	 (constants (a o) (b o) (c o))
+	 (assumption A1 (NOT (OR a b)))
+	 (assumption A2 a)
+	 (assumption A3 b)
+	 (assumption A4 (OR (NOT a) (NOT b)))
+	 (assumption A5 (NOT a))
+	 (assumption A6 (OR c b))
+	 (assumption A7 (NOT b))
+	 (conclusion T (AND (NOT a) (NOT b))))
+
+(th~defproblem nd-rips-t2
+	 (in nd-rips)
+	 (constants (a o) (b o) (c o))
+	 (assumption A1 (NOT (OR a b)))
+	 (assumption A2 a)
+	 (assumption A3 b)
+	 (assumption A4 (OR (NOT a) (NOT b)))
+	 (assumption A5 (NOT a))
+	 (assumption A6 (OR c b))
+	 (assumption A7 (NOT b))
+	 (conclusion T (AND (NOT a) (NOT b))))
+
+(th~defproblem nd-rips-t3
+	 (in nd-rips)
+	 (constants (a o) (b o) (c o))
+	 (assumption A1 (NOT (OR a b)))
+	 (assumption A2 a)
+	 (assumption A3 b)
+	 (assumption A4 (OR (NOT a) (NOT b)))
+	 (assumption A5 (NOT a))
+	 (assumption A6 (OR c b))
+	 (assumption A7 (NOT b))
+	 (conclusion T (IMPLIES a b)))
+
+

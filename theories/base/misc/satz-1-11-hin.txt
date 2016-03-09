@@ -1,0 +1,36 @@
+Satz 1.11 aus Lueneburg Analysis, eine Richtung.
+Helmut's und mein Beispiel, warum Verbalisierung
+schoener gemacht werden sollte. Ist aber auch so ganz nett.
+
+Theorie angeordneter Koerper.
+
+Fuer automatische Beweiser.
+Mit Otter getestet, sollte mit SPASS noch besser gehen.
+
+Fuer eine schoene Verbalisierung muss ich noch das
+pprint-File schreiben.
+
+Abfolge der Kommandos:
+
+read-problem joerg.post
+call-spass-on-node		; alles default moeglich,
+				; gibt man avoid-doubling T ein,
+				; werden die Beweise huebscher, aber
+				; die Trafo dauert laenger
+(cleanup-proof)			; nur noetig, wenn man zeigen will,
+				; was das spart, oder wenn man
+				; verbalisieren will
+; WICHTIG: cleanup-proof nur ganz zum Schluss und NUR EINMAL
+; aufrufen!!!
+present
+macroplan			; alles default ist schoen und
+				; kurz. Ein Schritt ist etwas
+				; kompliziert. Wenn man den sehen
+				; will, wiederholt man ab
+				; "macroplan" und gibt
+				; fuer implicit nil an
+				; dann erscheint allerdings auch
+				; =SUBST als Begruendung
+load-file pprint.lisp
+verbalize
+typeset

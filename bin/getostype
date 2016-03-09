@@ -1,0 +1,7 @@
+#!/bin/tcsh -f 
+
+if ("${OSTYPE}" == "linux") then 
+        echo "linux"
+else
+        echo "solaris"
+endif

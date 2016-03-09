@@ -1,0 +1,72 @@
+(in-package :keim)
+
+(lex~def-entry agatha
+ ((class name)
+  (verbalizations ("Agatha" 1))))
+
+(um~def-variable agatha umv@function
+  ((arity 0) (priority (verb . 10))
+   (um 'um@object :object (lex 'agatha))))
+
+
+(lex~def-entry charles
+ ((class name)
+  (verbalizations ("Charles" 1))))
+
+(um~def-variable charles umv@function
+  ((arity 0) (priority (verb . 10))
+   (um 'um@object :object (lex 'charles))))
+
+
+(lex~def-entry butler
+ ((class noun)
+  (verbalizations ("butler" 1))))
+
+(um~def-variable butler umv@function
+  ((arity 0) (priority (verb . 10))
+   (um 'um@object :object (lex 'butler)
+       :annotations '((specifier definite)))))
+
+
+(lex~def-entry HATES
+ ((class VERB)
+  (verbalizations ("hate" 1))))
+
+(um~def-variable HATES umv@predicate
+  ((arity 2) (priority (verb . 10)) 
+   (um 'um@PROCESS-RELATION :process (lex 'HATES) :domain ?1 :range ?2)))
+
+(pr2tag~role-translation "hate" (:domain . agent) (:range . :patient))
+
+
+(lex~def-entry LIVING
+ ((class adjective)
+  (verbalizations ("living" 1))))
+
+(um~def-variable lives umv@predicate
+  ((arity 1) (priority (verb . 10))
+   (um 'um@property-ascription :attribute (lex 'living)
+       :attribuend ?1)))
+
+
+(lex~def-entry KILLED
+ ((class VERB)
+  (verbalizations ("kill" 1))))
+
+(um~def-variable killed umv@predicate
+  ((arity 2) (priority (verb . 10)) 
+   (um 'um@PROCESS-RELATION :process (lex 'killed) :domain ?1 :range ?2
+       :annotations '((tense imperfekt)))))
+
+(pr2tag~role-translation "kill" (:domain . agent) (:range . :patient))
+
+
+(lex~def-entry RICH
+ ((class adjective)
+  (verbalizations ("rich" 1))))
+
+(um~def-variable richer umv@predicate
+  ((arity 2) (priority (verb . 10))
+   (um 'um@scaled-comparision :attribute (lex 'rich) :attribuend ?1 :comparand ?2)))
+
+;(pr2tag~role-translation "be-richer-than" (:domain . agent) (:range . :patient))

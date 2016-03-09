@@ -1,0 +1,118 @@
+(th~defdef Pwr
+           (in base)
+           (definition 
+	       (lam (p o)
+		    (equiv p true)))
+	   (help "Specification of a power source."))
+
+(th~defdef Gnd
+           (in base)
+           (definition 
+	       (lam (p o)
+		    (equiv p false)))
+	   (help "Specification of 'ground'."))
+
+
+(th~defdef Ntran
+           (in base)
+           (definition 
+	       (lam (g o)
+		    (lam (a o)		    
+			 (lam (b o)
+			      (implies g (equiv a b))))))
+	   (help "Specification of an n-transistor."))
+
+(th~defdef Ptran
+           (in base)
+           (definition 
+	       (lam (g o)
+		    (lam (a o)		    
+			 (lam (b o)
+			      (implies (not g) (equiv a b))))))
+	   (help "Specification of a p-transistor."))
+
+(th~defdef Add1-Spec
+           (in base)
+           (definition 
+	       (lam (a o)
+		    (lam (b o)
+			 (lam (cin o)
+			      (lam (sum o)
+				   (lam (cout o)
+  (or 
+   (and (not cout) (and (not sum) (and (not a) (and (not b) (not cin)))))
+  (or 
+   (and (not cout) (and sum (and (not a) (and (not b) cin))))
+  (or  
+   (and (not cout) (and sum (and (not a) (and b (not cin)))))
+  (or 
+   (and (not cout) (and sum (and a (and (not b) (not cin)))))
+  (or 
+   (and cout (and (not sum) (and (not a) (and b cin))))
+  (or 
+   (and cout (and (not sum) (and a (and (not b) cin))))
+  (or 
+   (and cout (and (not sum) (and a (and b (not cin)))))
+   (and cout (and sum (and a (and b cin)))))))))))))))))
+	   (help "Specification of the Add1 device"))
+
+
+
+(th~defdef Add1-Imp
+           (in base)
+           (definition 
+	       (lam (a o)
+		    (lam (b o)
+			 (lam (cin o)
+			      (lam (sum o)
+				   (lam (cout o)
+(exists (lam (p0 o)  
+ (exists (lam (p1 o) 
+  (exists (lam (p2 o) 
+   (exists (lam (p3 o) 
+    (exists (lam (p4 o) 
+     (exists (lam (p5 o) 
+      (exists (lam (p6 o) 
+       (exists (lam (p7 o) 
+        (exists (lam (p8 o) 
+         (exists (lam (p9 o) 
+          (exists (lam (p10 o) 
+           (exists (lam (p11 o) 
+ (and (Ptran p1 p0 p2)
+ (and (Ptran cin p0 p3)
+ (and (Ptran b p2 p3)
+ (and (Ptran a p2 p4)
+ (and (Ptran p1 p3 p4)
+ (and (Ntran a p4 p5)
+ (and (Ntran p1 p4 p6)
+ (and (Ntran b p5 p6)
+ (and (Ntran p1 p5 p11)
+ (and (Ntran cin p6 p11)
+ (and (Ptran a p0 p7)
+ (and (Ptran b p0 p7)
+ (and (Ptran a p0 p8)
+ (and (Ptran cin p7 p1)
+ (and (Ptran b p8 p1)
+ (and (Ntran cin p1 p9)
+ (and (Ntran b p1 p10)
+ (and (Ntran a p9 p11)
+ (and (Ntran b p9 p11)
+ (and (Ntran a p10 p11)
+ (and (Pwr p0)
+ (and (Ptran p4 p0 sum)
+ (and (Ntran p4 sum p11)
+ (and (Gnd p11)
+ (and (Ptran p1 p0 cout)
+      (Ntran p1 cout p11))))))))))))))))))))))))))))))))))))))))))))))))))))))))
+	   (help "Implementation of the Add1 device"))
+
+
+
+
+(th~defproblem Verify
+	       (in base)
+	       (constants (a o) (b o) (cin o) (sum o) (cout o)) 
+	       (conclusion conc
+		(implies (Add1-Imp a b cin sum cout) (Add1-Spec a b cin sum cout))) 
+	       (help "Verification Statement for Add1-Imp wrt. Add1-Spec."))			
+	       

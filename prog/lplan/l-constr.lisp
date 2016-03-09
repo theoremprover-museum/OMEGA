@@ -1,0 +1,633 @@
+;;; -*- syntax: common-lisp; package: OMEGA; base: 10; mode: keim -*-
+(in-package "OMEGA")
+
+(defvar cstr*inst-empty nil)
+
+(defun cstr~inst (constr)
+  (cond ((cstr~binding-p constr) (list constr))
+	((cstr~conjunction-p constr) (apply 'append (mapcar 'cstr~inst (cstr~arguments constr))))
+	(t nil)))
+
+(defun cstr~inst-add (var term inst)
+  (cons (cstr~binding-create (list var term)) inst))
+
+(defgeneric cstr~inst-remove (domain inst)
+  (:method ((domain list) inst)
+	   (remove-if #'(lambda (binding) (find (cstr~bound-variable binding) domain :test 'keim~equal)) inst))
+  (:method ((domain t) inst)
+	   (remove-if #'(lambda (binding) (keim~equal domain (cstr~bound-variable binding))) inst)))
+
+(defun cstr~inst-empty-p (inst)
+  (null inst))
+
+(defun cstr~inst-domain (inst)
+  (mapcar 'cstr~bound-variable inst))
+
+(defun cstr~inst-codomain-vars (inst)
+  (when inst
+    (reduce 'union (mapcar 'cstr~binding-variables inst))))
+
+(defun cstr~inst-metavar-bindings (inst)
+  (remove-if-not #'(lambda (binding) (meta~p (cstr~bound-variable binding))) inst))
+
+(defun cstr~inst-typevar-bindings (inst)
+  (remove-if-not #'(lambda (binding) (cstr~typevar-p (cstr~bound-variable binding))) inst))
+
+(defun cstr~inst-check-inconsistency (inst)
+  (declare (edited  "17-JAN-2002")
+	   (authors Scholl)
+	   (input   "An instantiation")
+	   (effect  "None.")
+	   (value   "T iff the instantiation is inconsistent."
+		    "Otherwise a new instantiation with duplicates removed."))
+  (when (not (cstr~inst-empty-p inst))
+    (let ((bound-var (cstr~bound-variable (first inst)))
+	  (binding-term (cstr~binding-term (first inst))))
+      (if (some #'(lambda (binding) (and (keim~equal (cstr~bound-variable binding) bound-var)
+					 (not (keim~equal (cstr~binding-term binding binding-term))))) (rest inst))
+	  t
+	(let ((rest-check (cstr~inst-check-inconsistency (remove-if #'(lambda (binding)
+									(keim~equal (cstr~bound-variable binding) bound-var))
+								    (rest inst)))))
+	  (if (eq t rest-check)
+	      t
+	    (cons (first inst) rest-check)))))))
+					 
+(defun cstr~create-new-metavar (metavar type)
+  (let* ((new-name (term~generate-new-name (keim~name metavar) (pds~environment omega*current-proof-plan)))
+	 (new-metavar (meta~variable-create new-name type)))
+    (env~enter new-name new-metavar (pds~environment omega*current-proof-plan))
+    new-metavar))
+
+(defun cstr~create-new-var (var type)
+  (let* ((new-name (term~generate-new-name (keim~name var) (pds~environment omega*current-proof-plan)))
+	 (new-var (term~variable-create new-name type)))
+    (env~enter new-name new-var (pds~environment omega*current-proof-plan))
+    new-var))
+
+(defun cstr~create-new-const (const type)
+  (let* ((new-name (term~generate-new-name (format nil "newconst-~A" (keim~name const))
+					   (pds~environment omega*current-proof-plan)))
+	 (new-const (term~constant-create new-name type)))
+    (env~enter new-name new-const (pds~environment omega*current-proof-plan))
+    new-const))
+
+(defun cstr~inst-find (object inst)
+  (let ((binding (find-if #'(lambda (binding) (keim~equal object (cstr~bound-variable binding))) inst)))
+    (when binding
+      (cstr~binding-term binding))))
+  
+(defgeneric cstr=inst-concerns-type (type inst)
+  (:method ((lis list) inst)
+	   (some #'(lambda (arg) (cstr=inst-concerns-type arg inst)) lis))
+  (:method ((type type+constant) inst)
+	   (cstr~inst-find type inst))
+  (:method ((type type+func) inst)
+	   (or (cstr=inst-concerns-type (data~abstr-domain type) inst) (cstr=inst-concerns-type (data~abstr-range type) inst)))
+  (:method ((type t) inst)
+	   (declare (ignore inst))
+	   nil))
+
+(defun cstr~inst-apply (object inst)
+  (multiple-value-bind (new-object new-inst)
+      (cstr=inst-apply object inst)
+    (values new-object new-inst (cstr~inst-remove (cstr~inst-domain inst) new-inst))))
+
+(defgeneric cstr~update (constr inst)
+  (:method ((constr cstr+binding) inst)
+	   (let ((args (cstr~arguments constr)))
+	     (cstr~binding-create (list (cstr~inst-apply (first args) inst) (second args)))))
+  (:method ((constr cstr+composition) inst)
+	   (let ((new-args (mapcar #'(lambda (arg) (cstr~update arg inst)) (cstr~arguments constr))))
+	     (cstr~composition-create (keim~name constr) new-args
+				      (reduce 'union (mapcar 'cstr~variables new-args)))))
+  (:method ((constr t) inst)
+	   constr))
+
+(defgeneric cstr=inst-apply (object inst)
+  (:method ((lis list) inst)
+	   (if lis
+	       (multiple-value-bind (first-lis first-inst)
+		   (cstr=inst-apply (first lis) inst)
+		 (multiple-value-bind (rest-lis rest-inst)
+		     (cstr=inst-apply (rest lis) first-inst)
+		   (values (cons first-lis rest-lis) rest-inst)))
+	     (values nil inst)))
+  (:method ((constr cstr+binding) inst)
+	   (let ((args (cstr~arguments constr)))
+	     (multiple-value-bind (new-bound new-inst)
+		 (cstr=inst-apply (second args) inst)
+	       (values (cstr~binding-create (list (first args) new-bound)) new-inst))))
+  (:method ((constr cstr+constraint) inst)
+	   (multiple-value-bind (new-args new-inst)
+	       (cstr=inst-apply (cstr~arguments constr) inst)
+	     (values (cstr~create (keim~name constr)
+				  new-args
+				  (cstr~free-variables (cstr~arguments constr))
+				  (if (cstr~simple-p constr) (cstr~polarity constr) T))
+		     new-inst)))
+  (:method ((term term+appl) inst)
+	   (multiple-value-bind (func function-inst)
+	       (cstr=inst-apply (data~appl-function term) inst)
+	     (multiple-value-bind (arguments arguments-inst)
+		 (cstr=inst-apply (data~appl-arguments term) function-inst)
+	       (values (term~appl-create func arguments) arguments-inst))))
+  (:method ((term term+abstr) inst)
+	   (multiple-value-bind (domain domain-inst)
+	       (cstr=inst-apply (data~abstr-domain term) inst)
+	     (multiple-value-bind (range range-inst)
+		 (cstr=inst-apply (data~abstr-range term) domain-inst)
+	   (values (term~abstr-create domain range) (cstr~inst-remove (data~abstr-domain term) range-inst)))))
+  (:method ((term term+constant) inst)
+	   (if (cstr=inst-concerns-type (term~type term) inst)
+	       ;;(let ((new-const (cstr~create-new-const term (cstr=inst-apply (term~type term) inst))))
+	       ;;(values new-const (cstr~inst-add term new-const inst)))
+	       (values (env~lookup-object (keim~name term) (pds~environment omega*current-proof-plan)) inst)
+	     (values term inst)))
+  (:method ((term meta+variable) inst)
+	   (let ((bound (cstr~inst-find term inst)))
+	     (if bound (values bound inst)
+	       (if (cstr=inst-concerns-type (term~type term) inst)
+		   (let ((new-metavar (cstr~create-new-metavar term (cstr=inst-apply (term~type term) inst))))
+		     (values new-metavar (cstr~inst-add term new-metavar inst)))
+		 (values term inst)))))
+  (:method ((term term+variable) inst)
+	   (let ((bound (cstr~inst-find term inst)))
+	     (if bound (values bound inst)
+	       (if (cstr=inst-concerns-type (term~type term) inst)
+		   (let ((new-var (cstr~create-new-var term (cstr=inst-apply (term~type term) inst))))
+		     (values new-var (cstr~inst-add term new-var inst)))
+		 (values term inst)))))
+  (:method ((type type+constant) inst)
+	   (let ((bound (cstr~inst-find type inst)))
+	     (if bound (values bound inst) (values type inst))))
+  (:method ((type type+func) inst)
+	   (values (type~func-create (cstr=inst-apply (data~abstr-domain type) inst)
+				     (cstr=inst-apply (data~abstr-range type) inst))
+		   inst))
+  (:method ((type t) inst)
+	   (values type inst)))
+
+(defun cstr~inst-compose (inst1 inst2)
+  (if (null inst1)
+      inst2
+    (multiple-value-bind (new-binding new-inst add-inst)
+	(cstr~inst-apply (first inst1) inst2)
+      (declare (ignore new-inst))
+      (cons new-binding (cstr~inst-compose (rest inst1) (append inst2 add-inst))))))
+
+(defun cstr~inst-simple-compose (inst1 inst2)
+  (append inst1 inst2))
+
+(defun cstr~inst-compose-idem (inst1 inst2)
+  (cond ((intersection (cstr~inst-domain inst1) (cstr~inst-codomain-vars inst2))
+	 (cstr~inst-compose inst2 inst1))
+	((intersection (cstr~inst-domain inst2) (cstr~inst-codomain-vars inst1))
+	 (cstr~inst-compose inst1 inst2))
+	(t
+	 (cstr~inst-simple-compose inst1 inst2))))
+
+(defun cstr~inst-to-subst (inst)
+  (meth~subst-create (mapcar 'cstr~bound-variable inst) (mapcar 'cstr~binding-term inst)))
+
+(defun cstr~inst-from-subst (subst)
+  (mapcar #'(lambda (dom codom) (cstr~binding-create (list dom codom))) (subst~domain subst) (subst~codomain subst)))
+
+(defun cstr~inst-to-constr (inst)
+  (cstr~conjunction inst))
+
+; (defun cstr~inst-transform (inst &optional (c T) (sigma cstr*inst-empty))
+;   (if (cstr~inst-empty-p inst)
+;       (values c sigma)
+;     (let* ((binding (first inst))
+; 	   (x (cstr~bound-variable binding))
+; 	   (t-1 (cstr~inst-apply (cstr~binding-term binding) sigma)))
+;       (if (find x (cstr~inst-domain sigma))
+; 	  (multiple-value-bind (c-1 sigma-1)
+; 	      (cstr~unify-to-answer t-1 (cstr~inst-apply x sigma))
+; 	    (when c-1
+; 	      (multiple-value-bind (c-bar-1 sigma-bar-1)
+; 		  (cstr=simplify c sigma-1 cstr*inst-empty c-1)
+; 		(when c-bar-1
+; 		  (cstr~inst-transform (rest inst) c-bar-1 (cstr~inst-simple-compose
+; 							    (cstr~inst-simple-compose
+; 							     (cstr~inst-compose (cstr~inst-compose sigma sigma-1) sigma-bar-1)
+; 							     (cstr~inst-compose sigma-1 sigma-bar-1))
+; 							    sigma-bar-1))))))
+; 	(multiple-value-bind (c-bar-1 sigma-bar-1)
+; 	    (cstr=simplify c sigma cstr*inst-empty T)
+; 	  (when c-bar-1
+; 	    (cstr~inst-transform (rest inst) c-bar-1 (cstr~inst-simple-compose
+; 						      (cstr~inst-simple-compose
+; 						       (cstr~inst-compose sigma sigma-bar-1)
+; 						       (cstr~inst (cstr~inst-apply (cstr~inst-apply binding sigma) sigma-bar-1)))
+; 						      sigma-bar-1))))))))
+
+(defun cstr~inst-transform (inst)
+  (let* ((sigmau (cstr~inst-metavar-bindings inst))
+	 (sigmat (cstr~inst-typevar-bindings inst))
+	 (sigmat-1 (cstr~inst-check-inconsistency sigmat)))
+    (if (eq t sigmat-1)
+	;; sigmat is inconsistent
+	nil
+      (cstr~simplify (cstr~inst-to-constr sigmau) sigmat-1 t))))
+    
+(defun cstr~guard (constr)
+  (cond ((cstr~binding-p constr) t)
+	((cstr~conjunction-p constr) (cstr~conjunction (mapcar 'cstr~guard (cstr~arguments constr))))
+	(t constr)))
+
+(defun cstr~from-hou (hou-in)
+  (let* ((hou (cstr~adapt-hou-result hou-in))
+	 (subst (uni~substitution hou))
+	 (flex-flex (uni~flex-flex hou)))
+    (cstr~conjunction
+     (append
+      (mapcar #'(lambda (ff) (cstr~simple-create :unify ff (cstr~free-variables ff))) flex-flex)
+      (mapcar #'(lambda (var term) (cstr~binding-create (list var term))) (subst~domain subst) (subst~codomain subst))))))
+
+(defun cstr~unify (term1 term2)
+  (let* ((hou-list (uni~unify (list (list term1 term2)) :class 'uni+match))
+	 (cstr-list (mapcar 'cstr~from-hou hou-list)))
+    (when cstr-list
+      (cstr~disjunction cstr-list))))
+
+(defun cstr~unify-to-answer (term1 term2)
+  (let ((constr (cstr~unify term1 term2)))
+    (values (cstr~guard constr) (cstr~inst constr))))
+
+(defun cstr~merge (new-constr pds-constr)
+  (multiple-value-bind (answer-guard answer-inst)
+      (cstr=merge new-constr pds-constr)
+    (when answer-guard
+      (values answer-guard (cstr~inst-to-subst answer-inst)))))
+
+(defgeneric cstr=merge (new-constr pds-guard)
+  (:method ((new-constr cstr+constraint) (pds-guard-list list))
+	   (if pds-guard-list
+	       (cstr=merge new-constr (cstr~conjunction pds-guard-list))
+	     (cstr=merge new-constr T)))
+  (:method ((new-constr cstr+constraint) (pds-guard t))
+	   (let ((new-inst (cstr~inst new-constr))
+		 (new-guard (cstr~guard new-constr)))
+	     (if (not (cstr~inst-empty-p new-inst))
+		 (multiple-value-bind (c-1 sigma-1)
+		     (cstr~inst-transform new-inst)
+		   (when c-1
+		     (cstr~simplify (cstr~conjunction (list new-guard pds-guard)) sigma-1 c-1)))
+	       (cstr~compose new-guard pds-guard)))))
+
+; (defun cstr~eval (constr inst)
+;   (if (cstr~binding-p constr)
+;       ;; constr is a binding constraint
+;       (let ((twin-binding (find (cstr~bound-variable constr) (cstr~inst-domain inst))))
+; 	(if twin-binding
+; 	    ;; call unifier
+; 	    (cstr~unify-to-answer (cstr~binding-term constr) (cstr~binding-term twin-binding))
+; 	  ;; apply inst
+; 	  (if (intersection (cstr~variables constr) (cstr~inst-domain inst))
+; 	      (multiple-value-bind (subst-constr new-inst add-inst)
+; 		  (cstr~inst-apply constr inst)
+; 		(values T (cstr~inst-simple-compose (cstr~inst subst-constr)
+; 						    add-inst)))
+; 	    (values T (cstr~inst constr)))))
+;     ;; constr is a simple constraint
+;     (multiple-value-bind (subst-constr new-inst add-inst)
+; 	(cstr~inst-apply constr inst)
+;       (multiple-value-bind (new-guards new-bindings splitp)
+; 	  (cstr~satisfiable-p (keim~name subst-constr) (cstr~arguments subst-constr) (cstr~polarity subst-constr))
+; 	(if splitp
+; 	    (values (cstr~disjunction (mapcar #'(lambda (C Bs) (if (cstr~constraint-p C)
+; 								   (cstr~conjunction (cons C Bs))
+; 								 (when Bs (cstr~conjunction Bs))))
+; 					      new-guards new-bindings)) add-inst)
+; 	  (values new-guards (cstr~inst-simple-compose add-inst new-bindings)))))))
+
+(defun cstr~eval (constr inst)
+  (cond ((cstr~binding-p constr)
+	 ;; constr is a binding constraint
+	 (let ((bound-var (cstr~bound-variable constr)))
+	   (if (cstr~typevar-p bound-var)
+	       ;; typevar
+	       (if (find bound-var (cstr~inst-domain inst))
+		   (if (keim~equal (cstr~inst-apply bound-var inst) (cstr~binding-term constr))
+		       (values t cstr*inst-empty)
+		     nil)
+		 (values constr cstr*inst-empty))
+	     ;; metavar
+	     (multiple-value-bind (t-1 dummy sigma)
+		 (cstr~inst-apply (cstr~binding-term constr) inst)
+	       (declare (ignore dummy))
+	       (if (find bound-var (cstr~inst-domain inst))
+		   (let ((xmy (cstr~inst-apply bound-var inst)))
+		     (cond ((meta~p xmy)
+			    (cond ((keim~equal xmy t-1) (values t cstr*inst-empty))
+				  ((find xmy (term~free-variables t-1)) nil)
+				  (t (values t (cstr~inst-simple-compose sigma (cstr~inst-add xmy t-1 cstr*inst-empty))))))
+			   ((and (not (cstr~schematic-p xmy)) (not (cstr~schematic-p t-1)))
+			    (multiple-value-bind (c sigma-1)
+				(cstr~unify-to-answer xmy t-1)
+			      (when c
+				(values c (cstr~inst-simple-compose sigma sigma-1)))))
+			   (t
+			    (values (cstr~simple-create :unify (list xmy t-1) nil) sigma))))
+		 (values t (cstr~inst-simple-compose sigma (cstr~inst-add bound-var t-1 cstr*inst-empty))))))))
+	((cstr~newconst-p constr)
+	 (let ((i (cstr~newconst-metavar constr))
+	       (dom (cstr~inst-domain inst)))
+	   (if (not (intersection dom (cstr~guarded-vars constr)))
+	       (values constr cstr*inst-empty)
+	     (if (find i dom)
+		 (let ((isigma (cstr~inst-apply i inst)))
+		   (when (meta~p isigma)
+		     (if (cstr~schematic-p isigma)
+			 (values (cstr~newconst-create isigma) cstr*inst-empty)
+		       (values t (cstr~inst-add isigma (cstr~create-new-const isigma (term~type isigma)) cstr*inst-empty)))))
+	       (let ((new-type (cstr~inst-apply (term~type i) inst)))
+		 (if (set-difference (cstr~typevars (term~type i)) dom)
+		     (let ((i-1 (cstr~create-new-metavar i new-type)))
+		       (values (cstr~newconst-create i-1) (cstr~inst-add i i-1 cstr*inst-empty)))
+		   (values t (cstr~inst-add i (cstr~create-new-const i new-type) cstr*inst-empty))))))))
+	(t
+	 ;; constr is an other simple constraint
+	 (multiple-value-bind (subst-constr new-inst add-inst)
+	     (cstr~inst-apply constr inst)
+	   (declare (ignore new-inst))
+	   (multiple-value-bind (new-guards new-bindings splitp)
+	       (cstr~satisfiable-p (keim~name subst-constr) (cstr~arguments subst-constr) (cstr~polarity subst-constr))
+	     (if splitp
+		 (values (cstr~disjunction (mapcar #'(lambda (C Bs) (if (cstr~constraint-p C)
+									(cstr~conjunction (cons C Bs))
+								      (when Bs (cstr~conjunction Bs))))
+						   new-guards new-bindings)) add-inst)
+	       (values new-guards (cstr~inst-simple-compose add-inst new-bindings))))))))
+  
+(defun cstr~simplify (c sigma cs &key (type-match nil))
+  (cstr=simplify c sigma cs sigma :type-match type-match))
+
+(defun cstr=simplify (c sigma cs sigmao &key (type-match nil))
+  (cond ((eq c T)
+	 (values cs sigmao))
+	((or (cstr~simple-p c) (cstr~binding-p c))
+	 ;; c is a basic constraint
+	 (multiple-value-bind (c-1 sigma-1)
+	     (cstr~eval c sigma)
+	   (when c-1
+	     (if (cstr~inst-empty-p sigma-1)
+		 (values (cstr~conjunction (list cs c-1)) sigmao)
+	       (multiple-value-bind (c-2 sigma-2)
+		   (cstr=simplify cs sigma-1 c-1 sigma-1 :type-match type-match)
+		 (when c-2
+		   (values c-2 (cstr~inst-compose sigmao sigma-2))))))))
+	((cstr~conjunction-p c)
+	 ;; c is a conjunctive constraint
+	 (let ((c1 (first (cstr~arguments c)))
+	       (c2 (cstr~conjunction (rest (cstr~arguments c)))))
+	   (multiple-value-bind (c1-1 sigma1)
+	       (cstr=simplify c1 sigma t cstr*inst-empty :type-match type-match)
+	     (when c1-1
+	       (if (cstr~inst-empty-p sigma1)
+		   (cstr=simplify c2 sigma (cstr~conjunction (list cs c1-1)) sigmao :type-match type-match)
+		 (multiple-value-bind (c12 sigma12)
+		     (cstr=simplify c2 (cstr~inst-compose sigma sigma1) c1-1 sigma1 :type-match type-match)
+		   (when c12
+		     (multiple-value-bind (c-1 sigma-1)
+			 (cstr=simplify cs sigma12 c12 sigma12 :type-match type-match)
+		       (when c-1
+			 (values c-1 (cstr~inst-compose sigmao sigma-1)))))))))))
+	((cstr~disjunction-p c)
+	 ;; c is a disjunctive constraint
+	 (let* ((answer-pairs (mapcar #'(lambda (ci)
+					  (multiple-value-bind (ci-1 sigmai)
+					      (cstr=simplify ci sigma t cstr*inst-empty :type-match type-match)
+					    (cons ci-1 sigmai)))
+				      (cstr~arguments c)))
+		;;(falsity-pairs (remove-if-not #'(lambda (pair) (null (car pair))) answer-pairs))
+		(constr-pairs (remove-if #'(lambda (pair) (null (car pair))) answer-pairs)))
+	   (cond ((null constr-pairs)
+		  nil)
+		 ((some #'(lambda (pair) (and (eq (car pair) T) (cstr~inst-empty-p (cdr pair)))) constr-pairs)
+		  (values cs sigmao))
+		 ((= (list-length constr-pairs) 1)
+		  (multiple-value-bind (c-1 sigma-1)
+		      (cstr=simplify cs (cdr (first constr-pairs)) (car (first constr-pairs)) (cdr (first constr-pairs))
+				     :type-match type-match)
+		    (when c-1
+		      (values c-1 (cstr~inst-compose sigmao sigma-1)))))
+		 (t
+		  (let* ((i-pairs (mapcar #'(lambda (constr-pair)
+					      (multiple-value-bind (cl-1 sigmal)
+						  (cstr=simplify cs (cdr constr-pair) (car constr-pair) (cdr constr-pair)
+								 :type-match type-match)
+						(cons cl-1 sigmal)))
+					  constr-pairs))
+			 (l-pair (find-if #'(lambda (i-pair) (car i-pair)) i-pairs))
+			 (l (position l-pair i-pairs))
+			 (m (list-length constr-pairs)))
+		    (when l
+		      (if (= (+ l 1) m)
+			  (values (car l-pair) (cstr~inst-compose sigmao (cdr l-pair)))
+			(values (cstr~disjunction (list (cstr~conjunction (list (car l-pair) (cstr~inst-to-constr (cdr l-pair))))
+							(cstr~conjunction
+							 (list cs (cstr~disjunction
+								   (mapcar #'(lambda (pair)
+									       (cstr~conjunction
+										(list (car pair)
+										      (cstr~inst-to-constr (cdr pair)))))
+									   (subseq constr-pairs (+ l 1))))))))
+				sigmao))))))))
+	(t (omega~error ";;; cstr=simplify: Illegal constraint type: ~A." c))))
+
+(defun cstr~binding-vars (constr)
+  (cond ((cstr~binding-p constr) (list (cstr~bound-variable constr)))
+	((cstr~composition-p constr) (reduce 'union (mapcar 'cstr~binding-vars (cstr~arguments constr))))
+	(t nil)))
+
+(defun cstr~guarded-vars (constr)
+  (cond ((cstr~binding-p constr)
+	 (let ((term (cstr~binding-term constr)))
+	   (when (term~p term)
+	     (let* ((metavars (remove-if-not 'meta~p (term~free-variables term)))
+		    (boundvars (term~bound-variables term)))
+	       (when (append metavars boundvars)
+		 (reduce 'union (mapcar 'term~free-type-variables (append metavars boundvars))))))))
+	((cstr~conjunction-p constr)
+	 (reduce 'union (mapcar 'cstr~guarded-vars (cstr~arguments constr))))
+	((cstr~disjunction-p constr)
+	 (union
+	  (reduce 'union (mapcar 'cstr~guarded-vars (cstr~arguments constr)))
+	  (reduce 'intersection (mapcar 'cstr~binding-vars (cstr~arguments constr)))))
+	((cstr~constraint-p constr) (cstr~variables constr))
+	(t nil)))
+
+(defun cstr~instantiated-vars (constr)
+  (set-difference (cstr~binding-vars constr) (cstr~guarded-vars constr)))
+
+(defun cstr~first-path (constr)
+  (cond ((cstr~disjunction-p constr) (cstr~first-path (first (cstr~arguments constr))))
+	((cstr~conjunction-p constr) (cstr~conjunction (mapcar 'cstr~first-path (cstr~arguments constr))))
+	(t constr)))
+
+(defun cstr~rest-paths (constr)
+  (cond ((cstr~disjunction-p constr)
+	 (cstr~disjunction (cons (cstr~rest-paths (first (cstr~arguments constr))) (rest (cstr~arguments constr)))))
+	((cstr~conjunction-p constr)
+	 (cstr~disjunction (list (cstr~conjunction (cons (cstr~first-path (first (cstr~arguments constr)))
+							(mapcar 'cstr~rest-paths (rest (cstr~arguments constr)))))
+				 (cstr~conjunction (cons (cstr~rest-paths (first (cstr~arguments constr)))
+							 (rest (cstr~arguments constr)))))))
+	(t nil)))
+
+(defun cstr=compose-h (c sigma c-1-bar-1 c-1 c-bar-1 sigma-bar-1)
+  (multiple-value-bind (c-bar-3 sigma-bar-3)
+      (cond ((not (cstr~inst-empty-p sigma))
+	     (multiple-value-bind (cs sigma-1)
+		 (cstr~inst-transform sigma)
+	       (multiple-value-bind (c-bar-2 sigma-bar-2)
+		   (cstr~simplify (cstr~conjunction (list c c-1-bar-1)) sigma-1 cs)
+		 (when c-bar-2
+		   (cstr~disjunction (list (cstr~conjunction (list c-bar-2 (cstr~inst-to-constr sigma-bar-2)))
+					   (cstr~conjunction (list c-1 c-bar-1 (cstr~inst-to-constr sigma-bar-1)))
+					   (cstr~conjunction (list c-1 c-1-bar-1))))))))
+	    ((cstr~binding-vars c-1-bar-1)
+	     (multiple-value-bind (cs sigma-1)
+		 (cstr~inst-transform (cstr~inst c-1-bar-1))
+	       (multiple-value-bind (c-bar-2 sigma-bar-2)
+		   (cstr~simplify (cstr~conjunction (list c (cstr~guard c-1-bar-1))) sigma-1 cs)
+		 (when c-bar-2
+		   (cstr~disjunction (list (cstr~conjunction (list c-bar-2 (cstr~inst-to-constr sigma-bar-2)))
+					   (cstr~conjunction (list c-1 c-bar-1 (cstr~inst-to-constr sigma-bar-1)))
+					   (cstr~conjunction (list c-1 c-1-bar-1))))))))
+	    (t
+	     (multiple-value-bind (c-bar-2 sigma-bar-2)
+		 (cstr~compose (cstr~conjunction (list c (cstr~inst-to-constr sigma))) c-1-bar-1)
+	       (when c-bar-2
+		 (cstr~disjunction (list (cstr~conjunction (list c-bar-2 (cstr~inst-to-constr sigma-bar-2)))
+					 (cstr~conjunction (list c-1 c-bar-1 (cstr~inst-to-constr sigma-bar-1)))
+					 (cstr~conjunction (list c-1 c-1-bar-1))))))))
+    (if c-bar-3
+	(values c-bar-3 sigma-bar-3)
+      (when c-1
+	(if (cstr~binding-vars c-1)
+	    (multiple-value-bind (cs sigma-1)
+		(cstr~inst-transform (cstr~inst c-1))
+	      (cstr~simplify (cstr~conjunction (list (cstr~disjunction (list (cstr~conjunction (list c-bar-1
+												     (cstr~inst-to-constr sigma-bar-1)))
+									     c-1-bar-1))
+						     (cstr~guard c-1)))
+			     sigma-1 cs))
+	  (cstr~compose c-1 (cstr~disjunction (list (cstr~conjunction (list c-bar-1 (cstr~inst-to-constr sigma-bar-1))) c-1-bar-1))))))))
+
+(defun cstr=compose-h2 (c-1 c-bar-1 sigma-bar-1)
+  (when c-1
+    (cond ((cstr~binding-vars c-1)
+	   (multiple-value-bind (cs sigma-1)
+	       (cstr~inst-transform (cstr~inst c-1))
+	     (cstr~simplify (cstr~conjunction (list (cstr~guard c-1) c-bar-1 sigma-bar-1)) sigma-1 cs)))
+	  ((cstr~inst-empty-p sigma-bar-1)
+	   (multiple-value-bind (cs sigma-1)
+	       (cstr~inst-transform sigma-bar-1)
+	     (cstr~simplify (cstr~conjunction (list c-1 c-bar-1)) sigma-1 cs)))
+	  (t
+	   (cstr~compose c-1 c-bar-1)))))
+
+(defun cstr~compose (c1 c2)
+  (if (not (intersection (cstr~guarded-vars c1) (cstr~guarded-vars c2)))
+      (values (cstr~conjunction (list c1 c2)) cstr*inst-empty)
+    (let* ((first-path1 (cstr~first-path c1))
+	   (c (cstr~guard first-path1))
+	   (sigma (cstr~inst first-path1))
+	   (c-1 (cstr~rest-paths c1))
+	   (first-path2 (cstr~first-path c2))
+	   (c-bar-1 (cstr~guard first-path2))
+	   (sigma-bar-1 (cstr~inst first-path2))
+	   (c-1-bar-1 (cstr~rest-paths c2)))
+      (plan~trace "Decomposing c1: ~A" c1)
+      (plan~trace "c: ~A" c)
+      (plan~trace "sigma: ~A" sigma)
+      (plan~trace "c-1: ~A" c-1)
+      (plan~trace "Decomposing c2: ~A" c2)
+      (plan~trace "c-bar-1: ~A" c-bar-1)
+      (plan~trace "sigma-bar-1: ~A" sigma-bar-1)
+      (plan~trace "c-1-bar-1: ~A" c-1-bar-1)
+      (multiple-value-bind (cs sigma-1)
+	  (cstr~inst-transform (cstr~inst-simple-compose sigma sigma-bar-1))
+	(multiple-value-bind (c-bar-2 sigma-bar-2)
+	    (cstr~simplify (cstr~conjunction (list c c-bar-1)) sigma-1 cs)
+	  (if c-bar-2
+	      ;; satisfiable
+	      (if (and (eq t c-1) (eq t c-1-bar-1))
+		  (values c-bar-2 sigma-bar-2)
+		(values (cstr~disjunction (list (cstr~conjunction (list c-bar-2 (cstr~inst-to-constr sigma-bar-2)))
+						(cstr~conjunction (list c (cstr~inst-to-constr sigma) c-1-bar-1))
+						(cstr~conjunction (list c-1 c-bar-1 (cstr~inst-to-constr sigma-bar-1)))
+						(cstr~conjunction (list c-1 c-1-bar-1))))
+			cstr*inst-empty))
+	    ;; unsatisfiable
+	    (if c-1-bar-1
+		(cstr=compose-h c sigma c-1-bar-1 c-1 c-bar-1 sigma-bar-1)
+	      (cstr=compose-h2 c-1 c-bar-1 sigma-bar-1))))))))
+
+(defun cstr~typevar-p (my)
+  (and (type~constant-p my) (not (env~lookup-object (keim~name my) (th~env (prob~theory omega*current-proof-plan))))))
+
+(defgeneric cstr~schematic-p (obj)
+  (:method ((type type+constant))
+	   (cstr~typevar-p type))
+  (:method ((type type+func))
+	   (or (some 'cstr~schematic-p (data~abstr-domain type)) (cstr~schematic-p (data~abstr-range type))))
+  (:method ((term term+primitive))
+	   (cstr~schematic-p (term~type term)))
+  (:method ((term term+appl))
+	   (or (cstr~schematic-p (data~appl-function term)) (some 'cstr~schematic-p (data~appl-arguments term))))
+  (:method ((term term+abstr))
+	   (or (some 'cstr~schematic-p (data~abstr-domain term)) (cstr~schematic-p (data~abstr-range term))))
+  (:method ((obj t))
+	   nil))
+	   
+(defgeneric cstr~typevars (obj)
+  (:method ((type type+constant))
+	   (when (cstr~typevar-p type)
+	     (list type)))
+  (:method ((type type+func))
+	   (append (reduce 'union (mapcar 'cstr~typevars (data~abstr-domain type)))
+		   (cstr~typevars (data~abstr-range type)))))
+	   
+(defgeneric cstr~sat-type= (type1 type2 polarity)
+  (declare (edited  "26-NOV-1998")
+	   (authors Lassaad)
+	   (input   "Two types and a boolean POLARITY to choose between"
+		    "asking for either satisfiability or unsatisfiability"
+		    "of the constraint.")
+	   (effect  "None.")
+	   (value   "The (un)satisfiability value of the constraint."))
+  (:method ((type1 type+constant) (type2 type+constant) polarity)
+	   (if (or (cstr~typevar-p type1) (cstr~typevar-p type2))
+	       (values (cstr~simple-create :type= (list type1 type2) nil polarity))
+	     (if polarity
+		 (values (keim~equal type1 type2))
+	       (values (not (keim~equal type1 type2))))))
+  (:method ((type1 T) (type2 T) polarity)
+	   (declare (ignore polarity))
+	   (omega~error "cstr~~sat-type= not yet implemented for ~A, ~A"
+			(type-of type1) (type-of type2))))
+
+(defgeneric cstr~sat-newconst (metavar polarity)
+  (:method ((metavar meta+variable) polarity)
+	   (declare (ignore polarity))
+	   (if (cstr~schematic-p metavar)
+	       (values (cstr~newconst-create metavar))
+	     (values t (cstr~inst-add metavar (cstr~create-new-const metavar (term~type metavar)) cstr*inst-empty))))
+  (:method ((metavar t) polarity)
+	   (declare (ignore polarity))
+	   (omega~error "cstr~~sat-newconst not yet implemented for ~A"
+			(type-of metavar))))
+
+(defun cstr~newconst-p (obj)
+  (string-equal (keim~name obj) :newconst))
+
+(defun cstr~newconst-metavar (constr)
+  (first (cstr~arguments constr)))
+
+(defun cstr~newconst-create (metavar)
+  (cstr~simple-create :newconst (list metavar) (cons metavar (cstr~typevars (term~type metavar)))))

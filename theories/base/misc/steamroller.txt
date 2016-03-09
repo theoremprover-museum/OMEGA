@@ -1,0 +1,26 @@
+Schubert's Steamroller
+
+Fuer automatische Beweiser.
+Mit Otter getestet, sollte mit SPASS noch besser gehen.
+
+Fuer eine schoene Verbalisierung muss ich noch das
+pprint-File schreiben.
+
+Abfolge der Kommandos:
+
+read-problem joerg.post
+call-otter-on-node		; alles default moeglich,
+				; gibt man avoid-doubling T ein,
+				; werden die Beweise huebscher, aber
+				; die Trafo dauert laenger
+(cleanup-proof)			; nur noetig, wenn man zeigen will,
+				; was das spart, oder wenn man
+				; verbalisieren will
+; WICHTIG: cleanup-proof nur ganz zum Schluss und NUR EINMAL
+; aufrufen!!!
+present
+macroplan			; alles default, aber implicit-
+				; verbalization ist schoener
+load-file pprint.sst.lisp
+verbalize
+typeset

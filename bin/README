@@ -1,0 +1,25 @@
+
+Before you compile OMEGA, please adapt the following 
+files to your local environment:
+
+ - ilisp.emacs: change the path entry /project/omega/ilisp to your need
+   (line 27)
+ - make-omega-dumps: change the path to the Allegro Common Lisp (ACL)
+   (lines 19 and 21)
+
+then start the command 'make-omega-dumps'. Note that you should have
+installed the MathWeb system before, because this script uses the 
+MathWeb configuration files (see http://www.mathweb.org/mathweb for 
+the installation of MathWeb). If everything works fine, the script 
+creates the OMEGA system dumps, in a linux environment, these have
+the following names:
+  ./omega-3-emacs-linux.dxl
+  ./omega-3-quiet-linux.dxl 
+
+you can start a first test of the dumps with:
+  lisp -I omega-3-emacs-linux.dxl
+supposed you have the ACL directory in your PATH.
+
+good luck
+     your OMEGA team.
+

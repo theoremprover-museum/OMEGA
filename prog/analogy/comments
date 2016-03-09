@@ -1,0 +1,85 @@
+Kommentare zur Analogie
+
+7.11. Carsten
+	Welche Vor- und Nachteile hat Ericas Idee, dass, wenn keine einfachen Reformulierungen
+	gefunden wurden, ein neuer Planungszustand erzeugt wird, der Target-theorem und
+	Source-Theorem (mit allen benoetigten Subgoals) enthaelt? Im Gegensatz zu
+	BW-Planungsschritt auf Target anwenden und mit Goals aus Source matchen.
+	+ klarere Struktur, da dann Source und Target zusammen im Planungszustand und das
+	Matchen geschieht im Planer und wird nicht von der Analogie gemacht
+	damit Planer matchen kann, muss allerdings eine Abstraktion oder eine perfekte
+	Reformulierung des Sources geschehen sein
+	Kontrolle: es darf auch nur BW-Planung geben, da ja vom Source ausgegangen wird
+	Wie bestimmt man relevante Sourcesubgoals?
+
+11.11. Carsten
+	Erzeugen der source-pds und Variabelisierung:
+	Wenn die source-pds durch Ausfuehrung eines replay-files erzeugt wird, sollte vorher variabelisiert
+	werden um Zeit zu sparen.
+	Andererseits: Ist die Var. ueberhaupt notwendig? Koennen die Symbole aus source/target nicht anders
+	unterschieden werden, zB durch Schauen zu welchem Problem die Theorie gehoert aus der das
+	Symbol kommt?
+
+21.1. Erica: Fragen zur Zusammenarbeit mit den Psychologen
+	1. Benutzen Menschen `teure' d.h. komplizierte Reformulierungen "uberhaupt?
+	  Wir wollen die in unserer computational analogy jetzt nicht mehr
+	benutzen, sonderen durch einfache planschritte ersetzen. 
+
+	2. Was machen Menschen, wenn zu einer source Beweisannahme keine
+	Entsprechung im target Problem enthalten ist? Schlagen sie neue
+	Targetannahmen vor oder suchen sie im source Beweis nach einer
+	abgeleiteten Annahme?
+
+	3. Wie wird Analogie als Strategie in der Mischung mit anderen Strategien
+	  verwendet?
+
+25.1. Carsten
+	Fragen/Ideen aus Brainstorming mit Erica:
+
+	Analogie als Strategie: -ist das Instanzieren von Metavariablen im Source noetig?
+				 koennte es nicht geschickter sein, sie nicht zu instanzieren (die genaue Form der
+				 Instanzierung ist doch eigentlich egal, und dann Refs billiger)
+				-wie wird die Instanzierung replayed?
+
+	Argument fuer derivational Analogie: Schicken der Bedingungen an Constraint Solver und nicht blosse
+		Transformation
+
+	Plan und Refs: 	welche Auswirkungen haben termbezogene Refs wie swap arguments und freeze arg auf den Plan?
+			haben Assoziativitaet und Kommutativitaet von and/or Auswirkungen, werden sie beim
+			Machten beruecksichtigt
+	Benutzerinteraktion: Benutzer soll einige Korrespondenzen vorgeben koennen
+
+	Matchen:Welche Assumptions sollen Anfangs gematcht werden?
+		keine? billiger, da vielleicht unnoetige Arbeit gespart.
+		alle vom Source mit match/plan? final segment concatenation
+		alle vom Target mit match/plan? final segment concatenation
+			in beiden Faellen Gefahr des zuviel Matchen und damit Frage, was passiert, wenn 
+			Assumption auch durch Planen keine Korrespondenz hat. Man weiss vor Replay nicht, ob
+			sie noetig ist oder nicht.
+		hoehere Assumptions matchen? Metavariablen einfuehren? was ist psychologisch plausibler?
+		Experimente machen!
+
+		Wie werden die fuer das Target benoetigten Theoreme/Lemmas in der Theorie gefunden?
+		eine Moeglichkeit ist das Reformulieren der Source-Assumptions und deren Einfuegen ins Target.
+		Carsten: wie funktioniert denn das Benutzen von Lemmata aus der Theorie ueberhaupt? Anschauen!
+		
+		welche Rollen spielen Hyps in sequenten/goals/ass bei Knoten match?
+			was passiert wenn deswegen Methode nicht anwendbar?	
+
+	Domaenenwissen: eintragen durch C-Rules fuer Refs? Folge von Refs?
+
+2.3. Carsten: Supermethoden rufen C-Rules auf.
+	Spaeter werden die Supermethoden zu Strategien. Heisst das, wir haben auch strategispezifisches KW?
+	Wenn die Analogie eine Strategie aufruft, soll sie die Stratigie arbeiten lassen, oder soll auch sie
+	gelenkt werden? Lenkung, wenn kein KW?
+	jetzt: KW der Supermethoden wird benutzt.
+
+3.3. Carsten: Matcher: Die Permutation von Argumenten laesst sich erst nach dem Matchen feststellen:
+	(minus-var v1 v2) -> (minus c1 c2) 
+	--> most general bindings: minus-var -> ((lam x y) (minus (H1 x y) (H2 x y)))
+	Die Permutation entsteht erst durch die eingefuehrten Hilfsvariablen, nicht bereits bei der Imitation.
+
+4.3. Carsten: zur Repair match/plan phase: -Wie teuer darf repair-match sein? Im Limesbeispiel aus Paper (wo Ass und 
+	Conc zusammengefasst wurden) kostet der repair match nur eine Reformulierung, naemlich 'add-antecedent'!
+	- die vielen matches machen diese Phase sehr ineffizient...
+	

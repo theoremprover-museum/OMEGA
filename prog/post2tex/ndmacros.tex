@@ -1,0 +1,179 @@
+%***************************************************************************
+%   Hier kommen die Makros f"ur die Umgebung ndproof
+%***************************************************************************
+% 
+% Die Umgebung ndproof und ndproofsection erwarten ein Argument, ein Label
+% fuer die interne Beweisnummer des Beweises.
+% ndproof setzt das label, mit dem dann ueber \ref zugegriffen werden kann.
+% Mit ndproofsection kann
+% dann ein Teil des Beweises mit dem richtigen Label ausgelagert werden,
+% dabei werden alle Zeilen und labels im Kontext dieses Beweises referenziert.
+% Der Benutzer muss dann selbst darauf achten, das die labelung konsistent
+% bleibt.
+% Die Umgebungen ndproof und  ndproofsection
+% stellt die Makros \proofheader, \pl, \planline, \ndproofdevider und
+% \thmline zur Verf"ugung.
+%
+% Das Makro \ndproofheader erzeugt eine Kopfzeile mit den Tabellenueber-
+% schriften No, S;D, Formula, Reason
+% 
+% Das Makro \pl erzeugt eine Beweiszeile, die automatisch durchnumeriert
+% wird, es hat 4 Argumente:
+% <label>, <assump>, <formula>, <reason>; dabei ist <label> ein Name 
+% fuer die Zeilenummer, mit dem unter <assump> und <reason> auf die Zeile 
+% referenziert werden kann.
+% <label> ist dabei eine beliebige Zeichenkette, die keine TeX-Sonder- 
+%     Zeichen (\,%,&,$,...), aber auch nicht die Zeichen "," ";" "."
+%     und "|" enthalten darf.
+% <assump> ist eine durch Kommata getrennte Liste von vorher definierten
+%     <labels> 
+% <formula> ist die Formel, die in der Zeile stehen soll.
+% <reason> ist die Begr"undung fuer die Beweiszeile, sie besteht aus
+%     einer Regel, gefolgt duch ein Semikolon ";" gefolgt von einer
+%     durch Kommata getrennten Liste von definierten labels.
+%     ACHTUNG!! Wenn die Liste von labels leer ist muss immer noch ein
+%     Semikolon stehen, wenn nicht: viel Spass beim Suchen in den
+%     kryptischen Fehlermelldungen.
+%
+% \planline hat nur die Argumente 
+% <label>, <formula> und erzeugt eine Beweiszeile, wo die
+% Assumptionliste nur aus der Zeilennummer besteht und die Begruendung
+% aus (PLAN).
+% 
+% \thmline erzeugt die abschliessende Theoremzeile eines Beweises und
+% hat die Argumente <assump>, <formula>, <reason>, da auf diese Zeile
+% nicht mehr referenziert werden muss
+%
+% \ndproofdevider hat ein Argument und zieht einen waagerechten
+% Strich durch den Beweis zu Verschoenerungszwecken und schreibt das
+% Argument in die Mitte
+%
+% \pletc erzeugt eine Beweiszeile, in der in jeder Spalte vertikale
+% unsoweiter Punkte stehen
+%
+% \nextlinenumber gibt der folgenden Beweiszeile die Nummer die im Argument
+% steht. Ab da wird dann auch automatisch weiternumeriert.
+%************************************************************************
+
+\newcounter{plineno}
+
+\def\doref#1{\ref{\ndprooflabel:#1}}
+
+\def\recref#1,#2.{{%
+\def\tist{#1}\def\test{#2}%
+\ifx\tist\empty{}\else\recorref #1|.\fi%
+\ifx\test\empty{}\else,\recref #2.\fi}}
+
+\def\recorref#1|#2.{{%
+\def\tist{#1}\def\test{#2}%
+\ifx\tist\empty{}\else\doref{#1}\fi%
+\ifx\test\empty{}\else\big|\recorref #2.\fi}}
+
+\def\rulerecref#1,#2.{{%
+\def\tist{#1}\def\test{#2}%
+\ifx\tist\empty{}\else\ \doref{#1}\fi%
+\ifx\test\empty{}\else\ \rulerecref #2.\fi}}
+
+\def\ruleref#1;#2.{#1\rulerecref #2,.}
+
+%\def\assref#1;#2.{{\recref #1,.};{\recref #2,.}}
+\def\assref#1;#2.{{\recref #1,.}#2}
+
+
+%\newcommand{\auxpl}[3]%assump,formula,reason
+%{\arabic{plineno}. 
+%\> \parbox[t]{2.4cm}{\assref #1.}\> $\vdash$ \>
+%\begin{minipage}[t]{8.4cm}\raggedright{#2}\end{minipage}
+%\> \parbox[t]{2.5cm}{(\ruleref #3.)}\\} % xxx war 3cm 
+
+\newcommand{\auxthmline}[3]%assump,formula,reason
+{Thm.
+\> \parbox[t]{2.4cm}{\assref #1.}\> $\vdash$ \>
+\begin{minipage}[t]{9.4cm}\raggedright{#2}\end{minipage}
+\> \parbox[t]{2cm}{(\ruleref #3.)}\\}
+
+\newcommand{\dolabel}[1]{\label{#1}}
+
+\newcommand{\pl}[4]%label,assump,formula,reason
+{\refstepcounter{plineno}\dolabel{\ndprooflabel:#1}%
+\auxpl{#2}{#3}{#4}}
+
+\newcommand{\nextlinenumber}[1]%lineno
+{\ifnum#1>\theplineno%
+\setcounter{plineno}{#1}\addtocounter{plineno}{-1}%
+\else\typeout{Illegal proofline-number #1 in ND-proof \ndprooflabel}%
+\fi}
+
+\newcommand{\planline}[2]%label,formula
+{\pl{#1}{#1;}{#2}{PLAN;}}
+
+\newcommand{\openline}[2]%label,assump,formula
+{\pl{#1}{#1;}{#2}{Open;}}
+
+\newcommand{\thmline}[3]%assump,formula,reason
+{\auxthmline{#1}{#2}{#3}}
+
+\newcommand{\pletc}%
+{$\quad\vdots$\>$\quad\vdots$\>\>$\qquad\vdots$\>$\quad\vdots$\\}
+
+\newlength{\boxbreite}\newlength{\strichbreite}
+ 
+\newcommand{\ndproofdevider}[1]%
+{\settowidth{\boxbreite}{ #1 }%
+\setlength{\strichbreite}{0.5\textwidth}%
+\addtolength{\strichbreite}{-0.5\boxbreite}%
+\rule[0.8ex]{\strichbreite}{0.3pt} #1 \rule[0.8ex]{\strichbreite}{0.3pt}\\}
+
+\newenvironment{ndproof}[1]%Beweislabel
+{\global\def\ndprooflabel{#1}\setcounter{plineno}{0}
+\footnotesize\begin{tabbing}%
+\hspace*{1.1cm}\=\hspace*{3.0cm}\=\hspace*{0.6cm}%
+\=\hspace*{9.5cm}\= \kill}%
+{\end{tabbing}}
+
+\newenvironment{ndproofsection}[1]%Beweislabel
+{\footnotesize\begin{tabbing}%
+\hspace*{1.1cm}\=\hspace*{2.5cm}\=\hspace*{0.6cm}%
+\=\hspace*{9.5cm}\= \kill}%
+{\end{tabbing}}
+
+\newcommand{\ndproofheader}%
+{No \> S;D \> \> Formula \> Reason\\[0.5ex]
+\rule{\textwidth}{0.5pt}\\[0.5ex]}
+
+\newcommand{\geru}[2]
+{\begin{tabular}{c}{$#1$}\\ \hline{$#2$}\end{tabular}}
+\newcommand{\gentzenrule}[3]
+{{#1}\geru{#2}{#2}}
+\newcommand{\gentzenrulem}[3]
+{\gentzenrule{#1}{$#2$}{$#3$}}
+\def\premdivider{{\;;\;\;}}
+
+%--------------- Better Style ---------------------
+
+\renewenvironment{ndproof}[1]%Beweislabel
+{\global\def\ndprooflabel{#1}\setcounter{plineno}{0}%%
+\begin{center}%
+\footnotesize\begin{longtable}{lp{2cm}@{$\,\vdash\,$}p{10cm}l}%
+%%\footnotesize\begin{longtable}{p{4ex}p{3cm}@{$\,\vdash\,$}p{8cm}l}%
+}%
+{\end{longtable}\end{center}}
+%
+\newcommand{\auxpl}[3]%assump,formula,reason
+{\arabic{plineno}. &  {\assref #1.} & #2 & {(\ruleref #3.)} \\
+} 
+%
+
+% \renewcommand{\pl}[4]%label,assump,formula,reason
+% {\scriptsize#1.&  \tiny #2 & #3 & \scriptsize (#4)\\
+% }
+
+\renewcommand{\pl}[4]%label,assump,formula,reason
+{{\scriptsize#1}.& {\tiny #2} & #3 & {\scriptsize (#4)}\\
+}
+
+\def\lambdot{\rule{0.6mm}{0.6mm}\hspace{0.4ex}}   % the square dot
+\def\lamb#1{\lambda #1\lambdot}
+\def\all#1{\forall #1\lambdot}
+\def\ex#1{\exists #1\lambdot}
+
